@@ -1,0 +1,29 @@
+{
+  "name": "emergency-prediction-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI Emergency Pressure & Ambulance Load Prediction System",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "emergency",
+    "healthcare",
+    "prediction",
+    "ambulance",
+    "mern"
+  ],
+  "author": "AI Software Engineering Intern",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
