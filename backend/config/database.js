@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const logger = require("../utils/logger");
 
 dotenv.config();
 
@@ -10,10 +11,11 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("Database connection error:", error);
-    process.exit(1);
+    logger.error("Database connection error:", error);
+    logger.warn("Falling back to mock data service for testing");
+    // Don't exit - continue with mock data service
   }
 };
 
