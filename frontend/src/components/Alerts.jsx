@@ -1,327 +1,371 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  RefreshCw,
+  Loader2,
+  Filter,
+  Search,
+  Clock,
+  MapPin,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
-const Alerts = ({ alerts, getAlertSeverityColor, loading, error }) => {
-  const [filter, setFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("timestamp");
+const Alerts = () => {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    severity: "ALL",
+    hospital: "ALL",
+    timeRange: "24h",
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDetails, setShowDetails] = useState({});
+
+  const fetchAlerts = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:5001/api/alerts");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setAlerts(data.alerts || []);
+    } catch (err) {
+      console.error("Error fetching alerts:", err);
+      setError(err.message || "Failed to fetch alerts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAlerts();
+    // Refresh every 60 seconds
+    const interval = setInterval(fetchAlerts, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case "CRITICAL":
+        return "text-emergency-red bg-red-100 border-red-200";
+      case "WARNING":
+        return "text-warning-orange bg-orange-100 border-orange-200";
+      case "INFO":
+        return "text-info-blue bg-blue-100 border-blue-200";
+      default:
+        return "text-neutral-gray bg-gray-100 border-gray-200";
+    }
+  };
+
+  const formatTime = (timestamp) => {
+    return new Date(timestamp).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const filteredAlerts = alerts.filter((alert) => {
-    if (filter === "all") return true;
-    if (filter === "active") return alert.status === "active";
-    if (filter === "critical") return alert.severity === "Critical";
-    if (filter === "high") return alert.severity === "High";
-    return alert.severity === filter;
+    const matchesSeverity =
+      filters.severity === "ALL" || alert.severity === filters.severity;
+    const matchesHospital =
+      filters.hospital === "ALL" || alert.hospitalName === filters.hospital;
+    const matchesSearch =
+      !searchTerm ||
+      alert.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      alert.hospitalName.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesSeverity && matchesHospital && matchesSearch;
   });
 
-  const sortedAlerts = [...filteredAlerts].sort((a, b) => {
-    if (sortBy === "timestamp") {
-      return new Date(b.timestamp) - new Date(a.timestamp);
-    }
-    if (sortBy === "severity") {
-      const severityOrder = { Critical: 4, High: 3, Medium: 2, Low: 1 };
-      return severityOrder[b.severity] - severityOrder[a.severity];
-    }
-    return 0;
-  });
+  const uniqueHospitals = [
+    ...new Set(alerts.map((alert) => alert.hospitalName)),
+  ];
 
-  const getSeverityIcon = (severity) => {
-    switch (severity) {
-      case "Critical":
-        return (
-          <svg
-            className="h-4 w-4 text-red-600"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      case "High":
-        return (
-          <svg
-            className="h-4 w-4 text-orange-600"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      case "Medium":
-        return (
-          <svg
-            className="h-4 w-4 text-yellow-600"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-      default:
-        return (
-          <svg
-            className="h-4 w-4 text-blue-600"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
-    }
-  };
+  if (loading && alerts.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
+            <p className="mt-4 text-lg text-neutral-gray">Loading alerts...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const alertStats = {
-    total: alerts.length,
-    active: alerts.filter((a) => a.status === "active").length,
-    critical: alerts.filter((a) => a.severity === "Critical").length,
-    high: alerts.filter((a) => a.severity === "High").length,
-    medium: alerts.filter((a) => a.severity === "Medium").length,
-    low: alerts.filter((a) => a.severity === "Low").length,
-  };
+  if (error && alerts.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+              <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
+              <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+                Connection Error
+              </h2>
+              <p className="mt-2 text-neutral-gray">{error}</p>
+              <button
+                onClick={fetchAlerts}
+                className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Error Display */}
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-            <span className="text-red-700 font-medium">Error</span>
-          </div>
-          <p className="text-red-600 mt-1">{error}</p>
-        </div>
-      )}
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">Total Alerts</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {alertStats.total}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">Active</div>
-          <div className="text-2xl font-bold text-red-600">
-            {alertStats.active}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">Critical</div>
-          <div className="text-2xl font-bold text-red-600">
-            {alertStats.critical}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">High</div>
-          <div className="text-2xl font-bold text-orange-600">
-            {alertStats.high}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">Medium</div>
-          <div className="text-2xl font-bold text-yellow-600">
-            {alertStats.medium}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-1">Low</div>
-          <div className="text-2xl font-bold text-blue-600">
-            {alertStats.low}
-          </div>
-        </div>
-      </div>
-
-      {/* Filters and Controls */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Alert Management
-          </h2>
-        </div>
-        <div className="p-4 flex flex-wrap gap-4 items-center">
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">Filter:</label>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Alerts</option>
-              <option value="active">Active Only</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="timestamp">Latest First</option>
-              <option value="severity">Severity</option>
-            </select>
-          </div>
-
-          <div className="ml-auto text-sm text-gray-500">
-            Showing {sortedAlerts.length} of {alerts.length} alerts
-          </div>
-        </div>
-      </div>
-
-      {/* Alerts List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Alert Details</h2>
-        </div>
-        <div className="p-6">
-          {loading ? (
-            <div className="animate-pulse">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="mb-4 p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-warning-orange p-3 rounded-lg">
+                <AlertTriangle className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-dark-navy">
+                  Emergency Alerts
+                </h1>
+                <p className="text-sm text-neutral-gray">
+                  Real-time alerts and notifications
+                </p>
+              </div>
             </div>
-          ) : sortedAlerts.length > 0 ? (
-            <div className="space-y-4">
-              {sortedAlerts.map((alert) => (
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-neutral-gray">Last Updated</p>
+                <p className="font-mono text-sm font-medium text-dark-navy">
+                  {new Date().toLocaleTimeString()}
+                </p>
+              </div>
+              <button
+                onClick={fetchAlerts}
+                disabled={loading}
+                className="flex items-center space-x-2 bg-white border border-gray-300 text-dark-navy px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Filters */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="flex items-center space-x-2 flex-1 max-w-md">
+              <Search className="h-5 w-5 text-neutral-gray" />
+              <input
+                type="text"
+                placeholder="Search alerts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-5 w-5 text-neutral-gray" />
+                <select
+                  value={filters.severity}
+                  onChange={(e) =>
+                    setFilters({ ...filters, severity: e.target.value })
+                  }
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+                >
+                  <option value="ALL">All Severities</option>
+                  <option value="CRITICAL">Critical</option>
+                  <option value="WARNING">Warning</option>
+                  <option value="INFO">Info</option>
+                </select>
+              </div>
+
+              <select
+                value={filters.hospital}
+                onChange={(e) =>
+                  setFilters({ ...filters, hospital: e.target.value })
+                }
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+              >
+                <option value="ALL">All Hospitals</option>
+                {uniqueHospitals.map((hospital) => (
+                  <option key={hospital} value={hospital}>
+                    {hospital}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Alert Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Total Alerts
+                </p>
+                <p className="text-2xl font-bold text-dark-navy">
+                  {alerts.length}
+                </p>
+              </div>
+              <AlertTriangle className="h-12 w-12 text-warning-orange" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Critical Alerts
+                </p>
+                <p className="text-2xl font-bold text-emergency-red">
+                  {alerts.filter((a) => a.severity === "CRITICAL").length}
+                </p>
+              </div>
+              <AlertCircle className="h-12 w-12 text-emergency-red" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Active Hospitals
+                </p>
+                <p className="text-2xl font-bold text-info-blue">
+                  {uniqueHospitals.length}
+                </p>
+              </div>
+              <MapPin className="h-12 w-12 text-info-blue" />
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts List */}
+        <div className="bg-white rounded-lg shadow-lg">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-dark-navy">
+              Recent Alerts
+            </h2>
+            <p className="text-sm text-neutral-gray mt-1">
+              {filteredAlerts.length} alert
+              {filteredAlerts.length !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          <div className="divide-y divide-gray-200">
+            {filteredAlerts.length > 0 ? (
+              filteredAlerts.map((alert, index) => (
                 <div
-                  key={alert.id}
-                  className={`p-6 border-l-4 rounded-lg ${getAlertSeverityColor(alert.severity)} transition-all hover:shadow-md`}
+                  key={index}
+                  className="p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        {getSeverityIcon(alert.severity)}
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full font-medium ${getAlertSeverityColor(alert.severity).replace("border-", "bg-").replace("bg-", "bg-")}`}
-                        >
-                          {alert.severity}
-                        </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {alert.type}
-                        </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {alert.zone}
-                        </span>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            alert.status === "active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {alert.status}
-                        </span>
+                    <div className="flex items-start space-x-4 flex-1">
+                      {/* Severity Indicator */}
+                      <div
+                        className={`p-2 rounded-full ${getSeverityColor(alert.severity).split(" ")[1]} ${getSeverityColor(alert.severity).split(" ")[2]}`}
+                      >
+                        {alert.severity === "CRITICAL" && (
+                          <AlertCircle className="h-5 w-5 text-emergency-red" />
+                        )}
+                        {alert.severity === "WARNING" && (
+                          <AlertTriangle className="h-5 w-5 text-warning-orange" />
+                        )}
+                        {alert.severity === "INFO" && (
+                          <CheckCircle className="h-5 w-5 text-info-blue" />
+                        )}
                       </div>
 
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {alert.message}
-                      </h3>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Timestamp:</span>
-                          <br />
-                          <span className="text-gray-900">
-                            {new Date(alert.timestamp).toLocaleString()}
+                      {/* Alert Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4 mb-2">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(alert.severity)}`}
+                          >
+                            {alert.severity}
+                          </span>
+                          <span className="text-sm text-neutral-gray flex items-center space-x-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{formatTime(alert.timestamp)}</span>
+                          </span>
+                          <span className="text-sm text-neutral-gray flex items-center space-x-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{alert.hospitalName}</span>
                           </span>
                         </div>
-                        {alert.details && (
-                          <>
-                            <div>
-                              <span className="font-medium">Zone:</span>
-                              <br />
-                              <span className="text-gray-900">
-                                {alert.details.zone || alert.zone}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="font-medium">Type:</span>
-                              <br />
-                              <span className="text-gray-900">
-                                {alert.type}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
 
-                      {alert.details &&
-                        Object.keys(alert.details).length > 0 && (
-                          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                            <div className="text-xs text-gray-600 mb-2">
-                              Additional Details:
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
-                              {Object.entries(alert.details).map(
-                                ([key, value]) => (
-                                  <div
-                                    key={key}
-                                    className="flex justify-between"
-                                  >
-                                    <span className="text-gray-600">
-                                      {key}:
-                                    </span>
-                                    <span className="font-medium">{value}</span>
-                                  </div>
-                                ),
+                        <h3 className="text-lg font-medium text-dark-navy mb-2">
+                          {alert.message}
+                        </h3>
+
+                        {alert.description && (
+                          <div className="mt-2">
+                            <button
+                              onClick={() =>
+                                setShowDetails({
+                                  ...showDetails,
+                                  [index]: !showDetails[index],
+                                })
+                              }
+                              className="text-sm text-info-blue hover:text-info-blue/80 flex items-center space-x-1"
+                            >
+                              {showDetails[index] ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
                               )}
-                            </div>
+                              <span>
+                                {showDetails[index] ? "Hide" : "Show"} Details
+                              </span>
+                            </button>
+                            {showDetails[index] && (
+                              <p className="text-sm text-neutral-gray mt-2 bg-gray-50 p-3 rounded-lg">
+                                {alert.description}
+                              </p>
+                            )}
                           </div>
                         )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              <div className="mb-4">
-                <svg
-                  className="h-12 w-12 text-gray-300 mx-auto"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-5 5v-5zM11 19H6a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V17a2 2 0 01-2 2z"
-                  />
-                </svg>
+              ))
+            ) : (
+              <div className="p-8 text-center">
+                <CheckCircle className="mx-auto h-12 w-12 text-success-green" />
+                <p className="mt-4 text-lg text-dark-navy">No alerts found</p>
+                <p className="mt-2 text-neutral-gray">
+                  Try adjusting your filters or search terms
+                </p>
               </div>
-              <p className="text-lg font-medium">No alerts found</p>
-              <p className="text-sm">
-                Try adjusting your filters or check back later.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

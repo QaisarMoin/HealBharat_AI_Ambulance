@@ -1,6 +1,66 @@
 const Joi = require("joi");
 
 /**
+ * Input sanitization middleware
+ */
+const sanitizeInput = (req, res, next) => {
+  // Remove any potentially dangerous characters from query parameters
+  if (req.query && typeof req.query === "object") {
+    Object.keys(req.query).forEach((key) => {
+      if (typeof req.query[key] === "string") {
+        req.query[key] = req.query[key].replace(/[<>\"'&]/g, "");
+      }
+    });
+  }
+
+  // Remove any potentially dangerous characters from body parameters
+  if (req.body && typeof req.body === "object") {
+    Object.keys(req.body).forEach((key) => {
+      if (typeof req.body[key] === "string") {
+        req.body[key] = req.body[key].replace(/[<>\"'&]/g, "");
+      }
+    });
+  }
+
+  next();
+};
+
+/**
+ * Rate limiting helper (simple implementation)
+ */
+const rateLimit = (maxRequests = 100, windowMs = 60000) => {
+  const requests = new Map();
+
+  return (req, res, next) => {
+    const ip = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    const windowStart = now - windowMs;
+
+    // Clean old entries
+    if (requests.has(ip)) {
+      const userRequests = requests.get(ip);
+      const validRequests = userRequests.filter((time) => time > windowStart);
+      requests.set(ip, validRequests);
+    }
+
+    // Check current request count
+    const currentRequests = requests.get(ip) || [];
+    if (currentRequests.length >= maxRequests) {
+      return res.status(429).json({
+        error: "Too many requests. Please try again later.",
+        retryAfter: Math.ceil(windowMs / 1000),
+      });
+    }
+
+    // Add current request
+    currentRequests.push(now);
+    requests.set(ip, currentRequests);
+
+    next();
+  };
+};
+
+/**
  * Validate alert parameters
  */
 const validateAlertParams = (req, res, next) => {
@@ -188,4 +248,6 @@ module.exports = {
   validateAccidentData,
   validateWeatherData,
   validateTimeData,
+  sanitizeInput,
+  rateLimit,
 };

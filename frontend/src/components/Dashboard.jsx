@@ -1,355 +1,369 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import {
+  MapPin,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Map,
+  BarChart3,
+  Users,
+  Stethoscope,
+} from "lucide-react";
 
-const Dashboard = ({
-  predictions,
-  alerts,
-  dashboardData,
-  getRiskColor,
-  getAlertSeverityColor,
-  loading,
-  error,
-}) => {
-  const criticalAlerts = alerts.filter(
-    (a) => a.severity === "Critical" && a.status === "active",
-  );
-  const highRiskZones = predictions.filter((p) => p.overallRisk === "High");
+const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5001/api/dashboard/summary",
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setDashboardData(data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError(err.message || "Failed to fetch dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getPressureLevelColor = (level) => {
+    switch (level) {
+      case "CRITICAL":
+        return "text-emergency-red";
+      case "WARNING":
+        return "text-warning-orange";
+      case "NORMAL":
+        return "text-success-green";
+      default:
+        return "text-neutral-gray";
+    }
+  };
+
+  const getPressureLevelBg = (level) => {
+    switch (level) {
+      case "CRITICAL":
+        return "bg-red-100 border-red-200";
+      case "WARNING":
+        return "bg-orange-100 border-orange-200";
+      case "NORMAL":
+        return "bg-green-100 border-green-200";
+      default:
+        return "bg-gray-100 border-gray-200";
+    }
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+
+  if (loading && !dashboardData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
+            <p className="mt-4 text-lg text-neutral-gray">
+              Loading dashboard...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !dashboardData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+              <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
+              <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+                Connection Error
+              </h2>
+              <p className="mt-2 text-neutral-gray">{error}</p>
+              <button
+                onClick={fetchDashboardData}
+                className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Error Display */}
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-            <span className="text-red-700 font-medium">Error</span>
-          </div>
-          <p className="text-red-600 mt-1">{error}</p>
-        </div>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Hospitals */}
-        <div className="bg-white rounded-lg shadow p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Total Hospitals
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {dashboardData?.summary?.totalHospitals || 0}
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="bg-info-blue p-3 rounded-lg">
+                <Map className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-dark-navy">
+                  Emergency Operations Dashboard
+                </h1>
+                <p className="text-sm text-neutral-gray">
+                  Real-time hospital pressure & ambulance availability
+                </p>
+              </div>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg
-                className="h-8 w-8 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-neutral-gray">Last Updated</p>
+                <p className="font-mono text-sm font-medium text-dark-navy">
+                  {lastUpdated ? formatTime(lastUpdated) : "Never"}
+                </p>
+              </div>
+              <button
+                onClick={fetchDashboardData}
+                disabled={loading}
+                className="flex items-center space-x-2 bg-white border border-gray-300 text-dark-navy px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                <RefreshCw
+                  className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 />
-              </svg>
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Overall Pressure Level */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-info-blue">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Overall Pressure
+                </p>
+                <p
+                  className={`text-2xl font-bold ${getPressureLevelColor(dashboardData?.overallPressureLevel)}`}
+                >
+                  {dashboardData?.overallPressureLevel || "N/A"}
+                </p>
+              </div>
+              <AlertTriangle
+                className={`h-12 w-12 ${getPressureLevelColor(dashboardData?.overallPressureLevel)}`}
+              />
+            </div>
+          </div>
+
+          {/* Available Ambulances */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-success-green">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Available Ambulances
+                </p>
+                <p className="text-2xl font-bold text-dark-navy">
+                  {dashboardData?.availableAmbulances || 0}
+                </p>
+              </div>
+              <Stethoscope className="h-12 w-12 text-success-green" />
+            </div>
+          </div>
+
+          {/* Active Incidents */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-warning-orange">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Active Incidents
+                </p>
+                <p className="text-2xl font-bold text-dark-navy">
+                  {dashboardData?.activeIncidents || 0}
+                </p>
+              </div>
+              <AlertCircle className="h-12 w-12 text-warning-orange" />
+            </div>
+          </div>
+
+          {/* Hospitals Monitored */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-info-blue">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-gray">
+                  Hospitals Monitored
+                </p>
+                <p className="text-2xl font-bold text-dark-navy">
+                  {dashboardData?.hospitalsMonitored || 0}
+                </p>
+              </div>
+              <Users className="h-12 w-12 text-info-blue" />
             </div>
           </div>
         </div>
 
-        {/* Recent Ambulance Logs */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Recent Ambulance Logs (24h)
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {dashboardData?.summary?.recentAmbulanceLogs || 0}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <svg
-                className="h-8 w-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* High Risk Zones */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                High Risk Zones
-              </p>
-              <p className="text-2xl font-bold text-red-600">
-                {highRiskZones.length}
-              </p>
-            </div>
-            <div className="p-3 bg-red-100 rounded-full">
-              <svg
-                className="h-8 w-8 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Critical Alerts */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Critical Alerts
-              </p>
-              <p className="text-2xl font-bold text-red-600">
-                {criticalAlerts.length}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <svg
-                className="h-8 w-8 text-orange-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-5 5v-5zM11 19H6a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V17a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Zone Risk Overview */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Zone Risk Overview
-              </h2>
-            </div>
-            <div className="p-6">
-              {loading ? (
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-4 border-b"
-                    >
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
-                      <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {predictions.map((prediction) => (
-                    <div
-                      key={prediction.zone}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${getRiskColor(prediction.overallRisk)}`}
-                        >
-                          {prediction.zone}
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500">
-                            Overall Risk
-                          </div>
-                          <div
-                            className={`text-lg font-semibold ${getRiskColor(prediction.overallRisk).split(" ")[0]}`}
-                          >
-                            {prediction.overallRisk}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">Confidence</div>
-                        <div className="text-lg font-semibold text-blue-600">
-                          {prediction.confidence || "N/A"}%
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Alerts */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recent Alerts
-              </h2>
-            </div>
-            <div className="p-6">
-              {loading ? (
-                <div className="animate-pulse">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="mb-4 p-3 bg-gray-100 rounded">
-                      <div className="h-3 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {alerts.slice(0, 5).map((alert) => (
-                    <div
-                      key={alert.id}
-                      className={`p-4 border-l-4 rounded ${getAlertSeverityColor(alert.severity)} transition-all hover:shadow-md`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${getAlertSeverityColor(alert.severity).replace("border-", "bg-").replace("bg-", "bg-")}`}
-                            >
-                              {alert.severity}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {alert.zone}
-                            </span>
-                          </div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {alert.message}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(alert.timestamp).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {alerts.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No active alerts
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Zone Details */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {predictions.map((prediction) => (
-          <div key={prediction.zone} className="bg-white rounded-lg shadow p-6">
+        {/* Detailed Metrics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Pressure Trends */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {prediction.zone}
-              </h3>
-              <div
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(prediction.overallRisk)}`}
-              >
-                {prediction.overallRisk}
-              </div>
+              <h2 className="text-lg font-semibold text-dark-navy">
+                Pressure Trends
+              </h2>
+              <TrendingUp className="h-6 w-6 text-info-blue" />
             </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">ED Pressure:</span>
-                <span
-                  className={`font-medium ${getRiskColor(prediction.edPressure).split(" ")[0]}`}
+            <div className="space-y-4">
+              {dashboardData?.pressureTrends?.map((trend, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-lg border ${getPressureLevelBg(trend.level)}`}
                 >
-                  {prediction.edPressure}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Ambulance Pressure:</span>
-                <span
-                  className={`font-medium ${getRiskColor(prediction.ambulancePressure).split(" ")[0]}`}
-                >
-                  {prediction.ambulancePressure}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Accident Risk:</span>
-                <span
-                  className={`font-medium ${getRiskColor(prediction.accidentRisk).split(" ")[0]}`}
-                >
-                  {prediction.accidentRisk}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Trend:</span>
-                <span
-                  className={`font-medium ${
-                    prediction.trend === "Increasing"
-                      ? "text-red-600"
-                      : prediction.trend === "Decreasing"
-                        ? "text-green-600"
-                        : "text-gray-600"
-                  }`}
-                >
-                  {prediction.trend || "Stable"}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Confidence:</span>
-                <span className="font-medium text-blue-600">
-                  {prediction.confidence || "N/A"}%
-                </span>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-dark-navy">
+                        {trend.hospitalName}
+                      </p>
+                      <p className="text-sm text-neutral-gray">
+                        {trend.location}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`font-bold ${getPressureLevelColor(trend.level)}`}
+                      >
+                        {trend.level}
+                      </p>
+                      <p className="text-sm text-neutral-gray">
+                        {trend.percentage}% capacity
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {prediction.details && (
-              <div className="mt-4 pt-4 border-t">
-                <div className="text-xs text-gray-500 mb-2">
-                  Current Activity
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Arrivals:</span>
-                  <span className="font-medium">
-                    {prediction.details.currentActivity?.ambulanceArrivals || 0}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Accidents:</span>
-                  <span className="font-medium">
-                    {prediction.details.currentActivity?.accidentCount || 0}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
-        ))}
-      </div>
+
+          {/* Ambulance Status */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-dark-navy">
+                Ambulance Status
+              </h2>
+              <BarChart3 className="h-6 w-6 text-success-green" />
+            </div>
+            <div className="space-y-4">
+              {dashboardData?.ambulanceStatus?.map((status, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-lg border border-gray-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-dark-navy">
+                        {status.hospitalName}
+                      </p>
+                      <p className="text-sm text-neutral-gray">
+                        {status.location}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-dark-navy">
+                        {status.available}
+                      </p>
+                      <p className="text-sm text-neutral-gray">Available</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-dark-navy">
+              Recent Alerts
+            </h2>
+            <AlertTriangle className="h-6 w-6 text-warning-orange" />
+          </div>
+          {dashboardData?.recentAlerts?.length > 0 ? (
+            <div className="space-y-3">
+              {dashboardData.recentAlerts.map((alert, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+                >
+                  <div
+                    className={`p-2 rounded-full ${alert.severity === "CRITICAL" ? "bg-red-100" : "bg-orange-100"}`}
+                  >
+                    <AlertTriangle
+                      className={
+                        alert.severity === "CRITICAL"
+                          ? "text-emergency-red"
+                          : "text-warning-orange"
+                      }
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-dark-navy">
+                      {alert.message}
+                    </p>
+                    <p className="text-sm text-neutral-gray">
+                      {alert.hospitalName} • {alert.timestamp}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      alert.severity === "CRITICAL"
+                        ? "bg-red-100 text-emergency-red"
+                        : "bg-orange-100 text-warning-orange"
+                    }`}
+                  >
+                    {alert.severity}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <CheckCircle className="mx-auto h-12 w-12 text-success-green" />
+              <p className="mt-4 text-neutral-gray">No recent alerts</p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };

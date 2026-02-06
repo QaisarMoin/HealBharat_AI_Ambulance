@@ -1,435 +1,392 @@
 import React, { useState } from "react";
+import {
+  Upload,
+  FileText,
+  Database,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
-const DataImport = ({ api }) => {
-  const [activeTab, setActiveTab] = useState("hospitals");
-  const [importStatus, setImportStatus] = useState(null);
+const DataImport = () => {
+  const [importType, setImportType] = useState("hospitals");
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
 
-  // Sample data templates
-  const sampleHospitalData = [
-    {
-      name: "City General Hospital",
-      zone: "Central",
-      capacity: 200,
-      currentPatients: 150,
-      availableBeds: 50,
-      emergencyBeds: 20,
-      ambulanceBays: 5,
-      latitude: 28.6139,
-      longitude: 77.209,
-    },
-    {
-      name: "North District Hospital",
-      zone: "North",
-      capacity: 150,
-      currentPatients: 80,
-      availableBeds: 70,
-      emergencyBeds: 15,
-      ambulanceBays: 3,
-      latitude: 28.7041,
-      longitude: 77.1025,
-    },
-    {
-      name: "South Medical Center",
-      zone: "South",
-      capacity: 180,
-      currentPatients: 120,
-      availableBeds: 60,
-      emergencyBeds: 18,
-      ambulanceBays: 4,
-      latitude: 28.5355,
-      longitude: 77.225,
-    },
-  ];
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setError(null);
+    setSuccess(null);
 
-  const sampleAmbulanceData = [
-    {
-      ambulanceId: "AMB-001",
-      zone: "Central",
-      status: "Available",
-      currentLocation: { latitude: 28.6139, longitude: 77.209 },
-      lastDispatchTime: "2024-01-15T10:30:00Z",
-      totalTrips: 156,
-      averageResponseTime: 8.5,
-    },
-    {
-      ambulanceId: "AMB-002",
-      zone: "North",
-      status: "On Route",
-      currentLocation: { latitude: 28.7041, longitude: 77.1025 },
-      lastDispatchTime: "2024-01-15T10:45:00Z",
-      totalTrips: 142,
-      averageResponseTime: 9.2,
-    },
-    {
-      ambulanceId: "AMB-003",
-      zone: "South",
-      status: "Available",
-      currentLocation: { latitude: 28.5355, longitude: 77.225 },
-      lastDispatchTime: "2024-01-15T09:15:00Z",
-      totalTrips: 178,
-      averageResponseTime: 7.8,
-    },
-  ];
+    // Preview data if it's a JSON file
+    if (selectedFile && selectedFile.type === "application/json") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          setPreviewData(data);
+        } catch {
+          setPreviewData(null);
+        }
+      };
+      reader.readAsText(selectedFile);
+    } else {
+      setPreviewData(null);
+    }
+  };
 
-  const sampleAccidentData = [
-    {
-      incidentId: "INC-001",
-      zone: "Central",
-      type: "Traffic Accident",
-      severity: "High",
-      location: { latitude: 28.6139, longitude: 77.209 },
-      timestamp: "2024-01-15T10:30:00Z",
-      casualties: 3,
-      vehiclesInvolved: 2,
-      weather: "Clear",
-      roadConditions: "Dry",
-    },
-    {
-      incidentId: "INC-002",
-      zone: "North",
-      type: "Medical Emergency",
-      severity: "Medium",
-      location: { latitude: 28.7041, longitude: 77.1025 },
-      timestamp: "2024-01-15T10:45:00Z",
-      casualties: 1,
-      vehiclesInvolved: 0,
-      weather: "Rainy",
-      roadConditions: "Wet",
-    },
-    {
-      incidentId: "INC-003",
-      zone: "South",
-      type: "Fire Incident",
-      severity: "Critical",
-      location: { latitude: 28.5355, longitude: 77.225 },
-      timestamp: "2024-01-15T09:15:00Z",
-      casualties: 5,
-      vehiclesInvolved: 1,
-      weather: "Clear",
-      roadConditions: "Dry",
-    },
-  ];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleImportData = async (type, data) => {
+    if (!file) {
+      setError("Please select a file to upload");
+      return;
+    }
+
     setLoading(true);
-    setImportStatus(null);
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", importType);
 
     try {
-      const result = await api.importData(type, data);
-      if (result.success) {
-        setImportStatus({
-          type: "success",
-          message: `Successfully imported ${data.length} ${type} records`,
-        });
-      } else {
-        setImportStatus({
-          type: "error",
-          message: result.message || "Import failed",
-        });
-      }
-    } catch {
-      setImportStatus({
-        type: "error",
-        message: "Network error occurred during import",
+      const response = await fetch("/api/data/import", {
+        method: "POST",
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setSuccess(result.message || "Data imported successfully");
+      setFile(null);
+      setPreviewData(null);
+    } catch (err) {
+      console.error("Error importing data:", err);
+      setError(err.message || "Failed to import data");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = (event, type) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const content = e.target.result;
-        const jsonData = JSON.parse(content);
-        await handleImportData(
-          type,
-          Array.isArray(jsonData) ? jsonData : [jsonData],
-        );
-      } catch {
-        setImportStatus({
-          type: "error",
-          message: "Invalid JSON file format",
-        });
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const getTabContent = () => {
-    switch (activeTab) {
+  const getImportTypeDescription = (type) => {
+    switch (type) {
       case "hospitals":
-        return (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Hospital Data Import
-              </h4>
-              <p className="text-sm text-blue-700">
-                Import hospital information including capacity, current patient
-                load, available beds, and location data.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium text-gray-900 mb-3">
-                  Sample Data Structure
-                </h5>
-                <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-auto max-h-64">
-                  {JSON.stringify(sampleHospitalData[0], null, 2)}
-                </pre>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Hospital Data (JSON)
-                  </label>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={(e) => handleFileUpload(e, "hospitals")}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                </div>
-
-                <button
-                  onClick={() =>
-                    handleImportData("hospitals", sampleHospitalData)
-                  }
-                  disabled={loading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Importing..." : "Import Sample Hospital Data"}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-
+        return "Import hospital information including names, locations, and capacity data";
       case "ambulances":
-        return (
-          <div className="space-y-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-900 mb-2">
-                Ambulance Data Import
-              </h4>
-              <p className="text-sm text-green-700">
-                Import ambulance status, location, availability, and performance
-                metrics.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium text-gray-900 mb-3">
-                  Sample Data Structure
-                </h5>
-                <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-auto max-h-64">
-                  {JSON.stringify(sampleAmbulanceData[0], null, 2)}
-                </pre>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Ambulance Data (JSON)
-                  </label>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={(e) => handleFileUpload(e, "ambulances")}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  />
-                </div>
-
-                <button
-                  onClick={() =>
-                    handleImportData("ambulances", sampleAmbulanceData)
-                  }
-                  disabled={loading}
-                  className="w-full px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Importing..." : "Import Sample Ambulance Data"}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-
+        return "Import ambulance availability and status information";
       case "incidents":
-        return (
-          <div className="space-y-6">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-semibold text-red-900 mb-2">
-                Incident Data Import
-              </h4>
-              <p className="text-sm text-red-700">
-                Import accident and incident reports with location, severity,
-                and response details.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium text-gray-900 mb-3">
-                  Sample Data Structure
-                </h5>
-                <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-auto max-h-64">
-                  {JSON.stringify(sampleAccidentData[0], null, 2)}
-                </pre>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Incident Data (JSON)
-                  </label>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={(e) => handleFileUpload(e, "incidents")}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-                  />
-                </div>
-
-                <button
-                  onClick={() =>
-                    handleImportData("incidents", sampleAccidentData)
-                  }
-                  disabled={loading}
-                  className="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Importing..." : "Import Sample Incident Data"}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-
+        return "Import accident and incident reports with timestamps and locations";
+      case "weather":
+        return "Import weather data that affects emergency response times";
       default:
-        return null;
+        return "Select a data type to import";
     }
   };
 
+  const sampleData = {
+    hospitals: [
+      {
+        name: "City General Hospital",
+        location: "123 Medical Ave, City Center",
+        capacity: 500,
+        currentPatients: 420,
+        availableBeds: 80,
+        availableAmbulances: 15,
+      },
+      {
+        name: "Regional Medical Center",
+        location: "456 Health St, North District",
+        capacity: 300,
+        currentPatients: 180,
+        availableBeds: 120,
+        availableAmbulances: 8,
+      },
+    ],
+    ambulances: [
+      {
+        hospitalId: "hospital_1",
+        status: "AVAILABLE",
+        location: "Hospital Parking",
+        lastMaintenance: "2024-01-15",
+      },
+      {
+        hospitalId: "hospital_2",
+        status: "ON_MISSION",
+        location: "En route to accident site",
+        eta: "12 minutes",
+      },
+    ],
+    incidents: [
+      {
+        type: "Traffic Accident",
+        location: "Main St & 5th Ave",
+        severity: "HIGH",
+        timestamp: "2024-01-15T14:30:00Z",
+        casualties: 3,
+        requiredUnits: 2,
+      },
+    ],
+    weather: [
+      {
+        date: "2024-01-15",
+        temperature: 5.2,
+        precipitation: 15.5,
+        windSpeed: 25.3,
+        visibility: 8.7,
+      },
+    ],
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Data Import</h2>
-        </div>
-        <div className="p-4">
-          <p className="text-sm text-gray-600">
-            Import emergency service data including hospital information,
-            ambulance status, and incident reports. Use the sample data or
-            upload your own JSON files.
-          </p>
-        </div>
-      </div>
-
-      {/* Import Status */}
-      {importStatus && (
-        <div
-          className={`mb-6 rounded-lg p-4 ${
-            importStatus.type === "success"
-              ? "bg-green-50 border border-green-200 text-green-700"
-              : "bg-red-50 border border-red-200 text-red-700"
-          }`}
-        >
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <span className="font-medium">{importStatus.message}</span>
-            <button
-              onClick={() => setImportStatus(null)}
-              className="text-sm hover:text-gray-600"
-            >
-              ×
-            </button>
+            <div className="flex items-center space-x-4">
+              <div className="bg-info-blue p-3 rounded-lg">
+                <Database className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-dark-navy">
+                  Data Import
+                </h1>
+                <p className="text-sm text-neutral-gray">
+                  Import emergency data from various sources
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </header>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b">
-          <nav className="-mb-px flex space-x-8 px-6">
-            {[
-              { id: "hospitals", name: "Hospitals", icon: "🏥" },
-              { id: "ambulances", name: "Ambulances", icon: "🚑" },
-              { id: "incidents", name: "Incidents", icon: "🚨" },
-            ].map((tab) => (
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Import Form */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-dark-navy mb-6">
+              Import Data
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Import Type Selection */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-gray mb-2">
+                  Data Type
+                </label>
+                <select
+                  value={importType}
+                  onChange={(e) => setImportType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+                >
+                  <option value="hospitals">Hospitals</option>
+                  <option value="ambulances">Ambulances</option>
+                  <option value="incidents">Incidents</option>
+                  <option value="weather">Weather Data</option>
+                </select>
+                <p className="mt-2 text-sm text-neutral-gray">
+                  {getImportTypeDescription(importType)}
+                </p>
+              </div>
+
+              {/* File Upload */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-gray mb-2">
+                  File Upload
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-info-blue transition-colors">
+                  <input
+                    type="file"
+                    accept=".json,.csv,.xlsx"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <Upload className="mx-auto h-12 w-12 text-neutral-gray mb-4" />
+                    <div className="text-sm text-neutral-gray">
+                      {file ? (
+                        <span className="text-dark-navy font-medium">
+                          {file.name}
+                        </span>
+                      ) : (
+                        "Click to upload or drag and drop"
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-gray mt-2">
+                      JSON, CSV, or Excel files only
+                    </p>
+                  </label>
+                </div>
+              </div>
+
+              {/* Preview Toggle */}
+              {previewData && (
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center space-x-2 text-info-blue hover:text-info-blue/80"
+                  >
+                    {showPreview ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    <span>{showPreview ? "Hide" : "Show"} Preview</span>
+                  </button>
+                  <span className="text-sm text-neutral-gray">
+                    File contains{" "}
+                    {Array.isArray(previewData)
+                      ? previewData.length
+                      : Object.keys(previewData).length}{" "}
+                    records
+                  </span>
+                </div>
+              )}
+
+              {/* Preview Section */}
+              {showPreview && previewData && (
+                <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-auto">
+                  <h3 className="text-sm font-medium text-dark-navy mb-2">
+                    Data Preview
+                  </h3>
+                  <pre className="text-xs text-neutral-gray overflow-auto">
+                    {JSON.stringify(previewData, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Status Messages */}
+              {error && (
+                <div className="flex items-center space-x-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="text-sm">{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="text-sm">{success}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                type="submit"
+                disabled={loading || !file}
+                className="w-full bg-info-blue text-white py-3 px-4 rounded-lg hover:bg-info-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
-                <span>{tab.icon}</span>
-                <span>{tab.name}</span>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5" />
+                    <span>Import Data</span>
+                  </>
+                )}
               </button>
-            ))}
-          </nav>
-        </div>
-        <div className="p-6">{getTabContent()}</div>
-      </div>
-
-      {/* Import Guidelines */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Import Guidelines
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Hospital Data</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Name and zone required</li>
-                <li>• Capacity and bed counts</li>
-                <li>• Location coordinates</li>
-                <li>• Emergency facilities</li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Ambulance Data</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Ambulance ID required</li>
-                <li>• Status and location</li>
-                <li>• Performance metrics</li>
-                <li>• Last dispatch time</li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Incident Data</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Incident ID required</li>
-                <li>• Type and severity</li>
-                <li>• Location coordinates</li>
-                <li>• Timestamp and details</li>
-              </ul>
-            </div>
+            </form>
           </div>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h5 className="font-medium text-gray-900 mb-2">File Format</h5>
-            <p className="text-sm text-gray-600">
-              Upload JSON files with arrays of objects matching the sample
-              structures above. Each import will validate the data and provide
-              feedback on success or errors.
-            </p>
+          {/* Sample Data & Instructions */}
+          <div className="space-y-6">
+            {/* Instructions */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-lg font-semibold text-dark-navy mb-4">
+                Import Instructions
+              </h2>
+              <div className="space-y-3 text-sm text-neutral-gray">
+                <div className="flex items-start space-x-3">
+                  <FileText className="h-5 w-5 text-info-blue mt-0.5" />
+                  <div>
+                    <strong>File Formats:</strong> JSON, CSV, or Excel files are
+                    supported
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-warning-orange mt-0.5" />
+                  <div>
+                    <strong>Data Validation:</strong> All data will be validated
+                    before import
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="h-5 w-5 text-success-green mt-0.5" />
+                  <div>
+                    <strong>Backup:</strong> Existing data will be preserved
+                    during import
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sample Data */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-lg font-semibold text-dark-navy mb-4">
+                Sample Data Format
+              </h2>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-dark-navy mb-2">
+                  For {importType}
+                </h3>
+                <pre className="text-xs text-neutral-gray overflow-auto">
+                  {JSON.stringify(sampleData[importType], null, 2)}
+                </pre>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-lg font-semibold text-dark-navy mb-4">
+                Quick Actions
+              </h2>
+              <div className="space-y-3">
+                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-dark-navy">
+                      Generate Mock Data
+                    </span>
+                    <Database className="h-4 w-4 text-neutral-gray" />
+                  </div>
+                  <p className="text-xs text-neutral-gray mt-1">
+                    Create sample data for testing
+                  </p>
+                </button>
+                <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-dark-navy">
+                      Export Current Data
+                    </span>
+                    <Upload className="h-4 w-4 text-neutral-gray" />
+                  </div>
+                  <p className="text-xs text-neutral-gray mt-1">
+                    Download existing data as backup
+                  </p>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

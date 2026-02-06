@@ -1,9 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
 const dotenv = require("dotenv");
 const connectDB = require("./config/database");
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
+const { sanitizeInput, rateLimit } = require("./middleware/validation");
 
 // Import mock data service for testing when MongoDB is not available
 const mockDataService = require("./services/mockDataService");
@@ -17,14 +20,57 @@ connectDB();
 // Initialize app
 const app = express();
 
-// Middleware
-app.use(cors());
+// Security middleware
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "http://localhost:3000"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+  }),
+);
+
+// CORS configuration
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? ["https://yourdomain.com"]
+        : ["http://localhost:5173", "http://127.0.0.1:5173"],
+    credentials: true,
+  }),
+);
+
+// Rate limiting
+app.use(rateLimit(100, 60000)); // 100 requests per minute
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Request logging middleware
+// Logging middleware
+app.use(
+  morgan("combined", {
+    stream: { write: (message) => logger.info(message.trim()) },
+  }),
+);
+
+// Request logging
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`);
+  logger.info(`${req.method} ${req.path} - ${req.ip}`);
   next();
 });
 
