@@ -84,12 +84,10 @@ const MapView = () => {
 
   if (loading && !mapData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
-            <p className="mt-4 text-lg text-neutral-gray">Loading map...</p>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
+          <p className="mt-4 text-lg text-neutral-gray">Loading map...</p>
         </div>
       </div>
     );
@@ -97,22 +95,20 @@ const MapView = () => {
 
   if (error && !mapData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
-              <h2 className="mt-4 text-xl font-semibold text-dark-navy">
-                Connection Error
-              </h2>
-              <p className="mt-2 text-neutral-gray">{error}</p>
-              <button
-                onClick={fetchMapData}
-                className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
+            <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+              Connection Error
+            </h2>
+            <p className="mt-2 text-neutral-gray">{error}</p>
+            <button
+              onClick={fetchMapData}
+              className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </div>
@@ -120,7 +116,7 @@ const MapView = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div>
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">

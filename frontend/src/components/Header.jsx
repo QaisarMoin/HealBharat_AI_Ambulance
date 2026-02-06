@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   LayoutDashboard,
   AlertTriangle,
@@ -16,15 +17,15 @@ import {
   Wifi,
 } from "lucide-react";
 
-const Header = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
+const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const tabs = [
-    { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },
-    { id: "alerts", name: "Alerts", icon: AlertTriangle },
-    { id: "map", name: "Map View", icon: Map },
-    { id: "import", name: "Data Import", icon: Database },
+    { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { id: "alerts", name: "Alerts", icon: AlertTriangle, path: "/alerts" },
+    { id: "map", name: "Map View", icon: Map, path: "/map" },
+    { id: "import", name: "Data Import", icon: Database, path: "/data" },
   ];
 
   return (
@@ -64,22 +65,16 @@ const Header = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
           <nav className="hidden lg:flex gap-2 ml-6">
             {tabs.map((tab) => {
               const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
 
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-300
-                    ${
-                      isActive
-                        ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-400/20 shadow-md shadow-cyan-500/20"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
+                  to={tab.path}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-300 text-gray-400 hover:text-white hover:bg-white/5`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.name}
-                </button>
+                </Link>
               );
             })}
           </nav>
@@ -168,7 +163,7 @@ const Header = ({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen }) => {
       <div className="px-6 py-2 text-xs text-gray-400 bg-[#0B0F1A]/60 border-t border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-cyan-400 font-medium">
-            {tabs.find((t) => t.id === activeTab)?.name}
+            Emergency Operations
           </span>
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
