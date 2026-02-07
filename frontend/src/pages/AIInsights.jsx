@@ -210,7 +210,7 @@ const AIInsights = () => {
         Zone-wise Risk Predictions{" "}
         <span className="text-[#10B981]"> (Click to view details)</span>
       </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 cursor-pointer">
         {predictions.map((pred, idx) => (
           <div
             key={idx}
