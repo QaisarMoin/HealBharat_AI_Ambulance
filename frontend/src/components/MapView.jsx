@@ -1,23 +1,124 @@
 import React, { useState, useEffect } from "react";
 import {
-  MapPin,
+  GoogleMap,
+  useJsApiLoader,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
+import {
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   RefreshCw,
   Loader2,
   AlertCircle,
-  CheckCircle,
-  Clock,
-  Map,
-  BarChart3,
-  Users,
-  Stethoscope,
-  Search,
-  Filter,
   ZoomIn,
   ZoomOut,
+  Map as MapIcon,
 } from "lucide-react";
+
+const containerStyle = {
+  width: "100%",
+  height: "600px",
+  borderRadius: "0.5rem",
+};
+
+const defaultCenter = {
+  lat: 28.6139,
+  lng: 77.209,
+};
+
+const mapOptions = {
+  styles: [
+    {
+      elementType: "geometry",
+      stylers: [{ color: "#242f3e" }],
+    },
+    {
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#242f3e" }],
+    },
+    {
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#746855" }],
+    },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: "#263c3f" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#6b9a76" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#38414e" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#212a37" }],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#9ca5b3" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#746855" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#1f2835" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#f3d19c" }],
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: "#2f3948" }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#17263c" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#515c6d" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#17263c" }],
+    },
+  ],
+  disableDefaultUI: false,
+  zoomControl: true,
+};
 
 const MapView = () => {
   const [mapData, setMapData] = useState(null);
@@ -28,7 +129,12 @@ const MapView = () => {
     showAmbulances: true,
     showIncidents: true,
   });
-  const [selectedHospital, setSelectedHospital] = useState(null);
+  const [activeInfoWindow, setActiveInfoWindow] = useState(null);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: "", // Add your API key here
+  });
 
   const fetchMapData = async () => {
     setLoading(true);
@@ -56,31 +162,17 @@ const MapView = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const getPressureLevelColor = (level) => {
-    switch (level) {
-      case "CRITICAL":
-        return "bg-[#EF4444]";
-      case "WARNING":
-        return "bg-[#F59E0B]";
-      case "NORMAL":
-        return "bg-[#10B981]";
-      default:
-        return "bg-gray-600";
-    }
-  };
-
-  const getPressureLevelText = (level) => {
-    switch (level) {
-      case "CRITICAL":
-        return "text-[#EF4444]";
-      case "WARNING":
-        return "text-[#F59E0B]";
-      case "NORMAL":
-        return "text-[#10B981]";
-      default:
-        return "text-gray-400";
-    }
-  };
+  if (loadError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 text-center border border-white/10">
+          <AlertCircle className="mx-auto h-12 w-12 text-[#EF4444]" />
+          <h2 className="mt-4 text-xl font-semibold text-white">Map Error</h2>
+          <p className="mt-2 text-gray-400">{loadError.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && !mapData) {
     return (
@@ -123,7 +215,7 @@ const MapView = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="bg-white/10 p-3 rounded-lg border border-white/10">
-                <Map className="h-8 w-8 text-white" />
+                <MapIcon className="h-8 w-8 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">
@@ -221,93 +313,155 @@ const MapView = () => {
           <div className="lg:col-span-3 bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-white">
-                Hospital Status Map
+                Live Operations Map
               </h2>
               <div className="flex items-center space-x-4 text-sm text-gray-400">
                 <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-[#EF4444] rounded-full"></div>
+                  <span>Critical Hospital</span>
+                </div>
+                <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-[#10B981] rounded-full"></div>
-                  <span>Normal</span>
+                  <span>Normal Hospital</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-[#F59E0B] rounded-full"></div>
-                  <span>Warning</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-[#EF4444] rounded-full"></div>
-                  <span>Critical</span>
+                  <span>Incident</span>
                 </div>
               </div>
             </div>
 
-            {/* Map Grid Visualization */}
-            <div className="relative bg-[#000000] rounded-lg p-8 min-h-96 border border-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mapData?.hospitals?.map((hospital, index) => {
-                  const pressureLevel =
-                    hospital.status === "Critical"
-                      ? "CRITICAL"
-                      : hospital.status === "High"
-                        ? "WARNING"
-                        : "NORMAL";
-                  const capacityPercentage = Math.round(
-                    (hospital.currentPatients / hospital.capacity) * 100,
-                  );
-
-                  return (
-                    <div
-                      key={index}
-                      className={`relative p-4 rounded-lg border transition-all hover:shadow-lg ${
-                        filters.showPressure
-                          ? getPressureLevelColor(pressureLevel) +
-                            " bg-opacity-10 border-transparent"
-                          : "bg-[#0A0A0A] border-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <MapPin
-                            className={`h-5 w-5 ${getPressureLevelText(pressureLevel)}`}
-                          />
-                          <span className="font-medium text-white">
-                            {hospital.name}
-                          </span>
-                        </div>
-                        {filters.showAmbulances && (
-                          <div className="flex items-center space-x-1 text-sm">
-                            <Stethoscope className="h-4 w-4 text-[#10B981]" />
-                            <span className="text-[#10B981] font-medium">
-                              {hospital.availableAmbulances}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {filters.showPressure && (
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-sm font-medium ${getPressureLevelText(pressureLevel)}`}
+            {/* Google Map Visualization */}
+            <div className="relative bg-[#000000] rounded-lg overflow-hidden border border-white/10 min-h-[600px]">
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={mapData?.hospitals?.[0]?.location || defaultCenter}
+                  zoom={12}
+                  options={mapOptions}
+                >
+                  {/* Hospital Markers */}
+                  {filters.showPressure &&
+                    mapData?.hospitals?.map((hospital) => (
+                      <Marker
+                        key={`hospital-${hospital.id}`}
+                        position={hospital.location}
+                        onClick={() =>
+                          setActiveInfoWindow(`hospital-${hospital.id}`)
+                        }
+                        title={hospital.name}
+                        icon={{
+                          path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                          fillColor:
+                            hospital.status === "Critical"
+                              ? "#EF4444"
+                              : hospital.status === "High"
+                                ? "#F59E0B"
+                                : "#10B981",
+                          fillOpacity: 1,
+                          strokeWeight: 1,
+                          strokeColor: "#FFFFFF",
+                          scale: 2,
+                        }}
+                      >
+                        {activeInfoWindow === `hospital-${hospital.id}` && (
+                          <InfoWindow
+                            onCloseClick={() => setActiveInfoWindow(null)}
                           >
-                            {pressureLevel}
-                          </span>
-                          <span className="text-sm text-gray-400">
-                            {capacityPercentage}% capacity
-                          </span>
-                        </div>
-                      )}
-
-                      {filters.showIncidents &&
-                        hospital.activeIncidents > 0 && (
-                          <div className="mt-2 flex items-center space-x-2">
-                            <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
-                            <span className="text-sm text-[#F59E0B] font-medium">
-                              {hospital.activeIncidents} zone incidents
-                            </span>
-                          </div>
+                            <div className="text-black p-2 min-w-[200px]">
+                              <h3 className="font-bold text-lg mb-1">
+                                {hospital.name}
+                              </h3>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                                    hospital.status === "Critical"
+                                      ? "bg-red-500"
+                                      : hospital.status === "High"
+                                        ? "bg-amber-500"
+                                        : "bg-emerald-500"
+                                  }`}
+                                >
+                                  {hospital.status}
+                                </span>
+                                <span className="text-xs text-gray-600">
+                                  {hospital.currentPatients}/{hospital.capacity}{" "}
+                                  Beds
+                                </span>
+                              </div>
+                              <div className="text-sm">
+                                <p>
+                                  <strong>Zone:</strong> {hospital.zone}
+                                </p>
+                                <p>
+                                  <strong>Ambulances:</strong>{" "}
+                                  {hospital.availableAmbulances}
+                                </p>
+                                <p>
+                                  <strong>Active Incidents:</strong>{" "}
+                                  {hospital.activeIncidents}
+                                </p>
+                              </div>
+                            </div>
+                          </InfoWindow>
                         )}
-                    </div>
-                  );
-                })}
-              </div>
+                      </Marker>
+                    ))}
+
+                  {/* Incident Markers */}
+                  {filters.showIncidents &&
+                    mapData?.incidents?.map((incident) => (
+                      <Marker
+                        key={`incident-${incident.id}`}
+                        position={incident.location}
+                        onClick={() =>
+                          setActiveInfoWindow(`incident-${incident.id}`)
+                        }
+                        title={incident.type}
+                        icon={{
+                          path: "M4.5 10c-2 0-3.5 1.5-3.5 3.5s1.5 3.5 3.5 3.5 3.5-1.5 3.5-3.5-1.5-3.5-3.5-3.5zm15 0c-2 0-3.5 1.5-3.5 3.5s1.5 3.5 3.5 3.5 3.5-1.5 3.5-3.5-1.5-3.5-3.5-3.5zm-7.5-6c-2 0-3.5 1.5-3.5 3.5s1.5 3.5 3.5 3.5 3.5-1.5 3.5-3.5-1.5-3.5-3.5-3.5z",
+                          fillColor: "#F59E0B",
+                          fillOpacity: 1,
+                          strokeWeight: 1,
+                          strokeColor: "#FFFFFF",
+                          scale: 1.5,
+                        }}
+                      >
+                        {activeInfoWindow === `incident-${incident.id}` && (
+                          <InfoWindow
+                            onCloseClick={() => setActiveInfoWindow(null)}
+                          >
+                            <div className="text-black p-2 min-w-[200px]">
+                              <h3 className="font-bold text-lg mb-1 text-amber-600 flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                {incident.type}
+                              </h3>
+                              <div className="text-sm space-y-1">
+                                <p>
+                                  <strong>Severity:</strong> {incident.severity}
+                                </p>
+                                <p>
+                                  <strong>Time:</strong>{" "}
+                                  {new Date(
+                                    incident.timestamp,
+                                  ).toLocaleTimeString()}
+                                </p>
+                                <p>
+                                  <strong>Casualties:</strong>{" "}
+                                  {incident.victimCount || 0}
+                                </p>
+                              </div>
+                            </div>
+                          </InfoWindow>
+                        )}
+                      </Marker>
+                    ))}
+                </GoogleMap>
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="h-12 w-12 animate-spin text-[#10B981]" />
+                </div>
+              )}
             </div>
           </div>
         </div>
