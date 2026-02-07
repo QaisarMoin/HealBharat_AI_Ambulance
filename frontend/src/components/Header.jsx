@@ -21,15 +21,8 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const tabs = [
-    { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, path: "/" },
-    { id: "alerts", name: "Alerts", icon: AlertTriangle, path: "/alerts" },
-    { id: "map", name: "Map View", icon: Map, path: "/map" },
-    { id: "import", name: "Data Import", icon: Database, path: "/data" },
-  ];
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0B0F1A]/80 border-b border-white/10 shadow-2xl">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-white/10 backdrop-blur-sm">
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left */}
@@ -37,88 +30,74 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
           {/* Mobile Menu */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-xl hover:bg-white/10 transition"
+            className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition text-gray-400 hover:text-white"
           >
             {sidebarOpen ? (
-              <X className="h-5 w-5 text-gray-300" />
+              <X className="h-5 w-5" />
             ) : (
-              <Menu className="h-5 w-5 text-gray-300" />
+              <Menu className="h-5 w-5" />
             )}
           </button>
 
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-              <Shield className="h-5 w-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-[#10B981]" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold text-white tracking-tight">
                 Emergency Ops
               </h1>
-              <p className="text-xs text-gray-400">
-                AI Emergency Command Center
-              </p>
+              <p className="text-xs text-gray-500">AI Command Center</p>
             </div>
           </div>
-
-          {/* Desktop Tabs */}
-          <nav className="hidden lg:flex gap-2 ml-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-
-              return (
-                <Link
-                  key={tab.id}
-                  to={tab.path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-300 text-gray-400 hover:text-white hover:bg-white/5`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.name}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* System Status */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 text-xs text-gray-300">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">
+            <span className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             System Online
-            <Wifi className="h-3 w-3 text-green-400" />
           </div>
 
           {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="p-2 rounded-xl hover:bg-white/10 transition hover:scale-105"
+              className="p-2 rounded-lg hover:bg-white/10 transition text-gray-400 hover:text-white"
             >
-              <Bell className="h-5 w-5 text-gray-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EF4444] rounded-full border border-black" />
             </button>
 
             {notificationsOpen && (
-              <div className="absolute right-0 mt-3 w-80 rounded-xl bg-[#0F172A] border border-white/10 shadow-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/10 text-sm font-semibold text-white">
-                  Notifications
+              <div className="absolute right-0 mt-3 w-80 rounded-xl bg-black border border-white/10 shadow-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/10 text-sm font-semibold text-white flex justify-between items-center">
+                  <span>Notifications</span>
+                  <span className="text-xs text-gray-500">Mark all read</span>
                 </div>
 
-                <div className="px-4 py-3 hover:bg-white/5 cursor-pointer">
-                  <p className="text-sm text-red-400 font-medium">
-                    Critical Alert
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    High-risk incident detected
+                <div className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
+                    <p className="text-sm text-[#EF4444] font-medium">
+                      Critical Alert
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-400 ml-4">
+                    High-risk incident detected in North Zone
                   </p>
                 </div>
 
-                <div className="px-4 py-3 hover:bg-white/5 cursor-pointer">
-                  <p className="text-sm text-yellow-400 font-medium">
-                    System Update
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                <div className="px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+                    <p className="text-sm text-[#F59E0B] font-medium">
+                      System Update
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-400 ml-4">
                     Ambulance availability updated
                   </p>
                 </div>
@@ -130,57 +109,38 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
           <div className="relative">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/10 transition"
+              className="flex items-center gap-3 pl-1 pr-3 py-1 rounded-full hover:bg-white/5 transition border border-transparent hover:border-white/10"
             >
-              <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+              <div className="relative w-8 h-8 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-black">
                 <User className="h-4 w-4 text-white" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#0B0F1A] rounded-full" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-black rounded-full" />
               </div>
-              <span className="hidden sm:block text-sm text-gray-200">
+              <span className="hidden sm:block text-sm font-medium text-gray-300">
                 Admin
               </span>
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-3 w-48 bg-[#0F172A] border border-white/10 rounded-xl shadow-xl">
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+              <div className="absolute right-0 mt-3 w-48 bg-black border border-white/10 rounded-xl shadow-xl">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <p className="text-sm text-white font-medium">
+                    Administrator
+                  </p>
+                  <p className="text-xs text-gray-500">admin@healbharat.com</p>
+                </div>
+                <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                   Profile
                 </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+                <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
                   Settings
                 </button>
-                <div className="border-t border-white/10" />
-                <button className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10">
+                <div className="border-t border-white/10 my-1" />
+                <button className="w-full text-left px-4 py-2 text-sm text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors">
                   Sign Out
                 </button>
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Context Bar */}
-      <div className="px-6 py-2 text-xs text-gray-400 bg-[#0B0F1A]/60 border-t border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="text-cyan-400 font-medium">
-            Emergency Operations
-          </span>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {new Date().toLocaleString()}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
-            <Activity className="h-3 w-3 text-green-400" /> Active: 12
-          </span>
-          <span className="flex items-center gap-1">
-            <Heart className="h-3 w-3 text-red-400" /> Patients: 45
-          </span>
-          <span className="flex items-center gap-1">
-            <MapIcon className="h-3 w-3 text-blue-400" /> Ambulances: 8
-          </span>
         </div>
       </div>
     </header>

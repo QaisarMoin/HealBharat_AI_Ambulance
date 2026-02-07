@@ -5,15 +5,19 @@ import Footer from "./Footer";
 
 const Layout = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-black text-white">
       <Header />
-      <div className="flex flex-1 pt-24">
-        <div className="fixed left-0 top-24 bottom-0 w-64 bg-white shadow-lg">
+      <div className="flex flex-1 pt-16">
+        <div className="fixed left-0 top-16 bottom-0 w-64 bg-black border-r border-white/10 hidden lg:block z-30">
           <Sidebar />
         </div>
-        <main className="flex-1 ml-64 overflow-y-auto p-4">{children}</main>
+        <main className="flex-1 lg:ml-64 overflow-y-auto p-4 md:p-6 bg-black">
+          {children}
+        </main>
       </div>
-      <Footer />
+      <div className="lg:ml-64">
+        <Footer />
+      </div>
     </div>
   );
 };

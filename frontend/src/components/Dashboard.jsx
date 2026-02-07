@@ -26,9 +26,7 @@ const Dashboard = () => {
     setError(null);
 
     try {
-      const response = await fetch(
-        "/api/dashboard/summary",
-      );
+      const response = await fetch("/api/dashboard/summary");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -45,38 +43,54 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000);
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchDashboardData, 10000);
     return () => clearInterval(interval);
   }, []);
 
   const getPressureLevelColor = (level) => {
-    switch (level) {
+    if (!level) return "text-gray-500";
+    const upperLevel = String(level).toUpperCase();
+
+    switch (upperLevel) {
       case "CRITICAL":
-        return "text-emergency-red";
+      case "HIGH":
+        return "text-[#EF4444]";
       case "WARNING":
-        return "text-warning-orange";
+      case "MEDIUM":
+      case "ELEVATED":
+        return "text-[#F59E0B]";
       case "NORMAL":
-        return "text-success-green";
+      case "LOW":
+      case "SUCCESS":
+        return "text-[#10B981]";
       case "NO DATA":
-        return "text-neutral-gray";
+        return "text-gray-500";
       default:
-        return "text-neutral-gray";
+        return "text-gray-500";
     }
   };
 
   const getPressureLevelBg = (level) => {
-    switch (level) {
+    if (!level) return "bg-white/5 border-white/10";
+    const upperLevel = String(level).toUpperCase();
+
+    switch (upperLevel) {
       case "CRITICAL":
-        return "bg-red-100 border-red-200";
+      case "HIGH":
+        return "bg-[#EF4444]/10 border-[#EF4444]/20";
       case "WARNING":
-        return "bg-orange-100 border-orange-200";
+      case "MEDIUM":
+      case "ELEVATED":
+        return "bg-[#F59E0B]/10 border-[#F59E0B]/20";
       case "NORMAL":
-        return "bg-green-100 border-green-200";
+      case "LOW":
+      case "SUCCESS":
+        return "bg-[#10B981]/10 border-[#10B981]/20";
       case "NO DATA":
-        return "bg-gray-100 border-gray-200";
+        return "bg-white/5 border-white/10";
       default:
-        return "bg-gray-100 border-gray-200";
+        return "bg-white/5 border-white/10";
     }
   };
 
@@ -92,8 +106,8 @@ const Dashboard = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
-          <p className="mt-4 text-lg text-neutral-gray">Loading dashboard...</p>
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-[#10B981]" />
+          <p className="mt-4 text-lg text-gray-400">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -103,15 +117,15 @@ const Dashboard = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
-            <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 text-center border border-[#1A1A1A]">
+            <AlertCircle className="mx-auto h-12 w-12 text-[#EF4444]" />
+            <h2 className="mt-4 text-xl font-semibold text-white">
               Connection Error
             </h2>
-            <p className="mt-2 text-neutral-gray">{error}</p>
+            <p className="mt-2 text-gray-400">{error}</p>
             <button
               onClick={fetchDashboardData}
-              className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+              className="mt-4 bg-[#10B981] text-white px-4 py-2 rounded-lg hover:bg-emerald-500 transition-colors"
             >
               Retry
             </button>
@@ -124,33 +138,33 @@ const Dashboard = () => {
   return (
     <div>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-black shadow-sm border-b border-white/10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-info-blue p-3 rounded-lg">
-                <Map className="h-8 w-8 text-white" />
+              <div className="bg-[#10B981]/20 p-3 rounded-lg border border-[#10B981]/20">
+                <Map className="h-8 w-8 text-[#10B981]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-dark-navy">
+                <h1 className="text-2xl font-bold text-white">
                   Emergency Operations Dashboard
                 </h1>
-                <p className="text-sm text-neutral-gray">
+                <p className="text-sm text-gray-400">
                   Real-time hospital pressure & ambulance availability
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-neutral-gray">Last Updated</p>
-                <p className="font-mono text-sm font-medium text-dark-navy">
+                <p className="text-sm text-gray-400">Last Updated</p>
+                <p className="font-mono text-sm font-medium text-white">
                   {lastUpdated ? formatTime(lastUpdated) : "Never"}
                 </p>
               </div>
               <button
                 onClick={fetchDashboardData}
                 disabled={loading}
-                className="flex items-center space-x-2 bg-white border border-gray-300 text-dark-navy px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-2 bg-[#0A0A0A] border border-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -167,10 +181,10 @@ const Dashboard = () => {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Overall Pressure Level */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-info-blue">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border-l-4 border-[#10B981] border-y border-r border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Overall Pressure
                 </p>
                 <p
@@ -186,49 +200,53 @@ const Dashboard = () => {
           </div>
 
           {/* Available Ambulances */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-success-green">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border-l-4 border-[#10B981] border-y border-r border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Available Ambulances
                 </p>
-                <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.totalAmbulances > 0 
+                <p className="text-2xl font-bold text-white">
+                  {dashboardData?.totalAmbulances > 0
                     ? `${dashboardData?.availableAmbulances} / ${dashboardData?.totalAmbulances}`
                     : "No Data"}
                 </p>
               </div>
-              <Stethoscope className="h-12 w-12 text-success-green" />
+              <Stethoscope className="h-12 w-12 text-[#10B981]" />
             </div>
           </div>
 
           {/* Active Incidents */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-warning-orange">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border-l-4 border-[#F59E0B] border-y border-r border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Active Incidents
                 </p>
-                <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.hospitalsMonitored > 0 ? dashboardData?.activeIncidents : "No Data"}
+                <p className="text-2xl font-bold text-white">
+                  {dashboardData?.hospitalsMonitored > 0
+                    ? dashboardData?.activeIncidents
+                    : "No Data"}
                 </p>
               </div>
-              <AlertCircle className="h-12 w-12 text-warning-orange" />
+              <AlertCircle className="h-12 w-12 text-[#F59E0B]" />
             </div>
           </div>
 
           {/* Hospitals Monitored */}
-          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-info-blue">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border-l-4 border-[#10B981] border-y border-r border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Hospitals Monitored
                 </p>
-                <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.hospitalsMonitored > 0 ? dashboardData?.hospitalsMonitored : "No Data"}
+                <p className="text-2xl font-bold text-white">
+                  {dashboardData?.hospitalsMonitored > 0
+                    ? dashboardData?.hospitalsMonitored
+                    : "No Data"}
                 </p>
               </div>
-              <Users className="h-12 w-12 text-info-blue" />
+              <Users className="h-12 w-12 text-[#10B981]" />
             </div>
           </div>
         </div>
@@ -236,12 +254,12 @@ const Dashboard = () => {
         {/* Detailed Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Pressure Trends */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-dark-navy">
+              <h2 className="text-lg font-semibold text-white">
                 Pressure Trends
               </h2>
-              <TrendingUp className="h-6 w-6 text-info-blue" />
+              <TrendingUp className="h-6 w-6 text-[#10B981]" />
             </div>
             <div className="space-y-4">
               {dashboardData?.pressureTrends?.map((trend, index) => (
@@ -251,12 +269,10 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-dark-navy">
+                      <p className="font-medium text-white">
                         {trend.hospitalName}
                       </p>
-                      <p className="text-sm text-neutral-gray">
-                        {trend.location}
-                      </p>
+                      <p className="text-sm text-gray-400">{trend.location}</p>
                     </div>
                     <div className="text-right">
                       <p
@@ -264,7 +280,7 @@ const Dashboard = () => {
                       >
                         {trend.level}
                       </p>
-                      <p className="text-sm text-neutral-gray">
+                      <p className="text-sm text-gray-400">
                         {trend.percentage}% capacity
                       </p>
                     </div>
@@ -275,33 +291,31 @@ const Dashboard = () => {
           </div>
 
           {/* Ambulance Status */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-dark-navy">
+              <h2 className="text-lg font-semibold text-white">
                 Ambulance Status
               </h2>
-              <BarChart3 className="h-6 w-6 text-success-green" />
+              <BarChart3 className="h-6 w-6 text-[#10B981]" />
             </div>
             <div className="space-y-4">
               {dashboardData?.ambulanceStatus?.map((status, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg border border-gray-200"
+                  className="p-4 rounded-lg border border-white/5 bg-white/5 border-l-4 border-l-[#10B981]"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-dark-navy">
+                      <p className="font-medium text-white">
                         {status.hospitalName}
                       </p>
-                      <p className="text-sm text-neutral-gray">
-                        {status.location}
-                      </p>
+                      <p className="text-sm text-gray-400">{status.location}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-dark-navy">
+                      <p className="text-2xl font-bold text-white">
                         {status.available}
                       </p>
-                      <p className="text-sm text-neutral-gray">Available</p>
+                      <p className="text-sm text-[#10B981]">Available</p>
                     </div>
                   </div>
                 </div>
@@ -311,44 +325,48 @@ const Dashboard = () => {
         </div>
 
         {/* Alerts */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-dark-navy">
-              Recent Alerts
-            </h2>
-            <AlertTriangle className="h-6 w-6 text-warning-orange" />
+            <h2 className="text-lg font-semibold text-white">Recent Alerts</h2>
+            <AlertTriangle className="h-6 w-6 text-[#F59E0B]" />
           </div>
           {dashboardData?.recentAlerts?.length > 0 ? (
             <div className="space-y-3">
               {dashboardData.recentAlerts.map((alert, index) => (
                 <div
                   key={index}
-                  className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+                  className={`flex items-center space-x-4 p-3 bg-white/5 rounded-lg border border-white/5 border-l-4 ${
+                    alert.severity === "CRITICAL"
+                      ? "border-l-[#EF4444]"
+                      : "border-l-[#F59E0B]"
+                  }`}
                 >
                   <div
-                    className={`p-2 rounded-full ${alert.severity === "CRITICAL" ? "bg-red-100" : "bg-orange-100"}`}
+                    className={`p-2 rounded-full ${
+                      alert.severity === "CRITICAL"
+                        ? "bg-[#EF4444]/10"
+                        : "bg-[#F59E0B]/10"
+                    }`}
                   >
                     <AlertTriangle
                       className={
                         alert.severity === "CRITICAL"
-                          ? "text-emergency-red"
-                          : "text-warning-orange"
+                          ? "text-[#EF4444]"
+                          : "text-[#F59E0B]"
                       }
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-dark-navy">
-                      {alert.message}
-                    </p>
-                    <p className="text-sm text-neutral-gray">
+                    <p className="font-medium text-white">{alert.message}</p>
+                    <p className="text-sm text-gray-400">
                       {alert.hospitalName} • {alert.timestamp}
                     </p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs rounded-full ${
+                    className={`px-2 py-1 text-xs rounded-full border ${
                       alert.severity === "CRITICAL"
-                        ? "bg-red-100 text-emergency-red"
-                        : "bg-orange-100 text-warning-orange"
+                        ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20"
+                        : "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
                     }`}
                   >
                     {alert.severity}
@@ -358,8 +376,8 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <CheckCircle className="mx-auto h-12 w-12 text-success-green" />
-              <p className="mt-4 text-neutral-gray">No recent alerts</p>
+              <CheckCircle className="mx-auto h-12 w-12 text-[#10B981]" />
+              <p className="mt-4 text-gray-400">No recent alerts</p>
             </div>
           )}
         </div>

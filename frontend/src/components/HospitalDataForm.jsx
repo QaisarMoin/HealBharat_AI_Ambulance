@@ -123,36 +123,36 @@ const HospitalDataForm = () => {
     formData.name.trim() && formData.zone && formData.capacity;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
+    <div className="min-h-screen bg-black py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="bg-blue-600 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <Building2 className="h-8 w-8 text-white" />
+          <div className="bg-emerald-600/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center border border-emerald-500/20 shadow-lg shadow-emerald-900/20">
+            <Building2 className="h-8 w-8 text-emerald-500" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Hospital Data Import
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             Enter hospital information for emergency prediction analysis
           </p>
         </div>
 
         {/* Form Card */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-[#0A0A0A] rounded-xl shadow-lg p-8 border border-white/10">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Hospital Name */}
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Hospital Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+                    <Building2 className="h-5 w-5 text-gray-500" />
                   </div>
                   <input
                     type="text"
@@ -161,7 +161,7 @@ const HospitalDataForm = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter hospital name"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-colors placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -170,20 +170,20 @@ const HospitalDataForm = () => {
               <div>
                 <label
                   htmlFor="zone"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Zone
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-gray-500" />
                   </div>
                   <select
                     id="zone"
                     name="zone"
                     value={formData.zone}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-colors"
                   >
                     <option value="">Select a zone</option>
                     {zones.map((zone) => (
@@ -199,13 +199,13 @@ const HospitalDataForm = () => {
               <div>
                 <label
                   htmlFor="capacity"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Total Capacity
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Bed className="h-5 w-5 text-gray-400" />
+                    <Bed className="h-5 w-5 text-gray-500" />
                   </div>
                   <input
                     type="number"
@@ -216,7 +216,7 @@ const HospitalDataForm = () => {
                     placeholder="Enter total bed capacity"
                     min="1"
                     max="1000"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-colors placeholder-gray-500"
                   />
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
@@ -228,13 +228,13 @@ const HospitalDataForm = () => {
               <div>
                 <label
                   htmlFor="currentLoad"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Current Load (Optional)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-gray-500" />
                   </div>
                   <input
                     type="number"
@@ -244,7 +244,7 @@ const HospitalDataForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter current patient load"
                     min="0"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-colors placeholder-gray-500"
                   />
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
@@ -254,14 +254,14 @@ const HospitalDataForm = () => {
 
               {/* Status Messages */}
               {error && (
-                <div className="flex items-center space-x-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center space-x-2 bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-4 py-3 rounded-lg">
                   <AlertCircle className="h-5 w-5" />
                   <span className="text-sm">{error}</span>
                 </div>
               )}
 
               {success && (
-                <div className="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center space-x-2 bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-4 py-3 rounded-lg">
                   <CheckCircle className="h-5 w-5" />
                   <span className="text-sm">{success}</span>
                 </div>
@@ -273,8 +273,8 @@ const HospitalDataForm = () => {
                 disabled={loading || !isFormValid}
                 className={`w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-lg font-semibold transition-all duration-200 ${
                   loading || !isFormValid
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                    : "bg-[#10B981] text-white hover:bg-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 }`}
               >
                 {loading ? (
@@ -293,11 +293,11 @@ const HospitalDataForm = () => {
           </div>
 
           {/* Instructions */}
-          <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          <div className="mt-6 bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
+            <h3 className="text-lg font-semibold text-white mb-3">
               Instructions
             </h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <ul className="space-y-2 text-sm text-gray-400">
               <li>• All fields marked with an asterisk (*) are required</li>
               <li>• Hospital name must be unique and descriptive</li>
               <li>• Zone selection helps with regional analysis</li>

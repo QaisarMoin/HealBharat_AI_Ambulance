@@ -59,26 +59,26 @@ const MapView = () => {
   const getPressureLevelColor = (level) => {
     switch (level) {
       case "CRITICAL":
-        return "bg-emergency-red";
+        return "bg-[#EF4444]";
       case "WARNING":
-        return "bg-warning-orange";
+        return "bg-[#F59E0B]";
       case "NORMAL":
-        return "bg-success-green";
+        return "bg-[#10B981]";
       default:
-        return "bg-neutral-gray";
+        return "bg-gray-600";
     }
   };
 
   const getPressureLevelText = (level) => {
     switch (level) {
       case "CRITICAL":
-        return "text-emergency-red";
+        return "text-[#EF4444]";
       case "WARNING":
-        return "text-warning-orange";
+        return "text-[#F59E0B]";
       case "NORMAL":
-        return "text-success-green";
+        return "text-[#10B981]";
       default:
-        return "text-neutral-gray";
+        return "text-gray-400";
     }
   };
 
@@ -86,8 +86,8 @@ const MapView = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
-          <p className="mt-4 text-lg text-neutral-gray">Loading map...</p>
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-[#10B981]" />
+          <p className="mt-4 text-lg text-gray-400">Loading map...</p>
         </div>
       </div>
     );
@@ -97,15 +97,15 @@ const MapView = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
-            <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 text-center border border-white/10">
+            <AlertCircle className="mx-auto h-12 w-12 text-[#EF4444]" />
+            <h2 className="mt-4 text-xl font-semibold text-white">
               Connection Error
             </h2>
-            <p className="mt-2 text-neutral-gray">{error}</p>
+            <p className="mt-2 text-gray-400">{error}</p>
             <button
               onClick={fetchMapData}
-              className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+              className="mt-4 bg-[#10B981] text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
             >
               Retry
             </button>
@@ -118,26 +118,26 @@ const MapView = () => {
   return (
     <div>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-black/95 shadow-sm border-b border-white/10 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-info-blue p-3 rounded-lg">
+              <div className="bg-white/10 p-3 rounded-lg border border-white/10">
                 <Map className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-dark-navy">
+                <h1 className="text-2xl font-bold text-white">
                   Emergency Operations Map
                 </h1>
-                <p className="text-sm text-neutral-gray">
+                <p className="text-sm text-gray-400">
                   Real-time hospital pressure & resource visualization
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-neutral-gray">Last Updated</p>
-                <p className="font-mono text-sm font-medium text-dark-navy">
+                <p className="text-sm text-gray-400">Last Updated</p>
+                <p className="font-mono text-sm font-medium text-white">
                   {mapData
                     ? new Date(mapData.lastUpdated).toLocaleTimeString()
                     : "Never"}
@@ -146,7 +146,7 @@ const MapView = () => {
               <button
                 onClick={fetchMapData}
                 disabled={loading}
-                className="flex items-center space-x-2 bg-white border border-gray-300 text-dark-navy px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-2 bg-white/5 border border-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -160,12 +160,10 @@ const MapView = () => {
 
       {/* Filters */}
       <div className="container mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 mb-6 border border-white/10">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-dark-navy">
-                Map Filters
-              </h3>
+              <h3 className="text-lg font-semibold text-white">Map Filters</h3>
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -174,9 +172,9 @@ const MapView = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, showPressure: e.target.checked })
                   }
-                  className="rounded border-gray-300 text-info-blue focus:ring-info-blue"
+                  className="rounded border-white/10 bg-[#111111] text-[#10B981] focus:ring-[#10B981]"
                 />
-                <label htmlFor="pressure" className="text-sm text-neutral-gray">
+                <label htmlFor="pressure" className="text-sm text-gray-400">
                   Show Pressure Levels
                 </label>
               </div>
@@ -188,12 +186,9 @@ const MapView = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, showAmbulances: e.target.checked })
                   }
-                  className="rounded border-gray-300 text-success-green focus:ring-success-green"
+                  className="rounded border-white/10 bg-[#111111] text-[#10B981] focus:ring-[#10B981]"
                 />
-                <label
-                  htmlFor="ambulances"
-                  className="text-sm text-neutral-gray"
-                >
+                <label htmlFor="ambulances" className="text-sm text-gray-400">
                   Show Ambulances
                 </label>
               </div>
@@ -205,143 +200,147 @@ const MapView = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, showIncidents: e.target.checked })
                   }
-                  className="rounded border-gray-300 text-warning-orange focus:ring-warning-orange"
+                  className="rounded border-white/10 bg-[#111111] text-[#F59E0B] focus:ring-[#F59E0B]"
                 />
-                <label
-                  htmlFor="incidents"
-                  className="text-sm text-neutral-gray"
-                >
+                <label htmlFor="incidents" className="text-sm text-gray-400">
                   Show Incidents
                 </label>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <ZoomOut className="h-5 w-5 text-neutral-gray" />
-              <span className="text-sm text-neutral-gray">Zoom: 100%</span>
-              <ZoomIn className="h-5 w-5 text-neutral-gray" />
+              <ZoomOut className="h-5 w-5 text-gray-400" />
+              <span className="text-sm text-gray-400">Zoom: 100%</span>
+              <ZoomIn className="h-5 w-5 text-gray-400" />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Map Container */}
-          <div className="lg:col-span-3 bg-white rounded-lg shadow-lg p-6">
+          <div className="lg:col-span-3 bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-dark-navy">Hospital Status Map</h2>
-              <div className="flex items-center space-x-4 text-sm text-neutral-gray">
+              <h2 className="text-lg font-semibold text-white">
+                Hospital Status Map
+              </h2>
+              <div className="flex items-center space-x-4 text-sm text-gray-400">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-success-green rounded-full"></div>
+                  <div className="w-3 h-3 bg-[#10B981] rounded-full"></div>
                   <span>Normal</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-warning-orange rounded-full"></div>
+                  <div className="w-3 h-3 bg-[#F59E0B] rounded-full"></div>
                   <span>Warning</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-emergency-red rounded-full"></div>
+                  <div className="w-3 h-3 bg-[#EF4444] rounded-full"></div>
                   <span>Critical</span>
                 </div>
               </div>
             </div>
 
             {/* Map Grid Visualization */}
-            <div className="relative bg-gray-100 rounded-lg p-8 min-h-96">
+            <div className="relative bg-[#000000] rounded-lg p-8 min-h-96 border border-white/10">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {mapData?.hospitals?.map((hospital, index) => {
-                  const pressureLevel = hospital.status === "Critical" ? "CRITICAL" : hospital.status === "High" ? "WARNING" : "NORMAL";
-                  const capacityPercentage = Math.round((hospital.currentPatients / hospital.capacity) * 100);
-                  
+                  const pressureLevel =
+                    hospital.status === "Critical"
+                      ? "CRITICAL"
+                      : hospital.status === "High"
+                        ? "WARNING"
+                        : "NORMAL";
+                  const capacityPercentage = Math.round(
+                    (hospital.currentPatients / hospital.capacity) * 100,
+                  );
+
                   return (
-                  <div
-                    key={index}
-                    className={`relative p-4 rounded-lg border-2 transition-all hover:shadow-lg ${
-                      filters.showPressure
-                        ? getPressureLevelColor(pressureLevel) +
-                          " bg-opacity-20"
-                        : "bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <MapPin
-                          className={`h-5 w-5 ${getPressureLevelText(pressureLevel)}`}
-                        />
-                        <span className="font-medium text-dark-navy">
-                          {hospital.name}
-                        </span>
+                    <div
+                      key={index}
+                      className={`relative p-4 rounded-lg border transition-all hover:shadow-lg ${
+                        filters.showPressure
+                          ? getPressureLevelColor(pressureLevel) +
+                            " bg-opacity-10 border-transparent"
+                          : "bg-[#0A0A0A] border-white/10"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <MapPin
+                            className={`h-5 w-5 ${getPressureLevelText(pressureLevel)}`}
+                          />
+                          <span className="font-medium text-white">
+                            {hospital.name}
+                          </span>
+                        </div>
+                        {filters.showAmbulances && (
+                          <div className="flex items-center space-x-1 text-sm">
+                            <Stethoscope className="h-4 w-4 text-[#10B981]" />
+                            <span className="text-[#10B981] font-medium">
+                              {hospital.availableAmbulances}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {filters.showAmbulances && (
-                        <div className="flex items-center space-x-1 text-sm">
-                          <Stethoscope className="h-4 w-4 text-success-green" />
-                          <span className="text-success-green font-medium">
-                            {hospital.availableAmbulances}
+
+                      {filters.showPressure && (
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-sm font-medium ${getPressureLevelText(pressureLevel)}`}
+                          >
+                            {pressureLevel}
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {capacityPercentage}% capacity
                           </span>
                         </div>
                       )}
+
+                      {filters.showIncidents &&
+                        hospital.activeIncidents > 0 && (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
+                            <span className="text-sm text-[#F59E0B] font-medium">
+                              {hospital.activeIncidents} zone incidents
+                            </span>
+                          </div>
+                        )}
                     </div>
-
-                    {filters.showPressure && (
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-sm font-medium ${getPressureLevelText(pressureLevel)}`}
-                        >
-                          {pressureLevel}
-                        </span>
-                        <span className="text-sm text-neutral-gray">
-                          {capacityPercentage}% capacity
-                        </span>
-                      </div>
-                    )}
-
-                    {filters.showIncidents && hospital.activeIncidents > 0 && (
-                      <div className="mt-2 flex items-center space-x-2">
-                        <AlertTriangle className="h-4 w-4 text-warning-orange" />
-                        <span className="text-sm text-warning-orange font-medium">
-                          {hospital.activeIncidents} zone incidents
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )})}
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
 
         {/* Summary Statistics */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-dark-navy mb-4">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
+          <h2 className="text-lg font-semibold text-white mb-4">
             Summary Statistics
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-dark-navy">
+              <div className="text-3xl font-bold text-white">
                 {mapData?.totalHospitals || 0}
               </div>
-              <div className="text-sm text-neutral-gray">Total Hospitals</div>
+              <div className="text-sm text-gray-400">Total Hospitals</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-warning-orange">
+              <div className="text-3xl font-bold text-[#F59E0B]">
                 {mapData?.criticalHospitals || 0}
               </div>
-              <div className="text-sm text-neutral-gray">
-                Critical Hospitals
-              </div>
+              <div className="text-sm text-gray-400">Critical Hospitals</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-success-green">
+              <div className="text-3xl font-bold text-[#10B981]">
                 {mapData?.totalAmbulances || 0}
               </div>
-              <div className="text-sm text-neutral-gray">
-                Available Ambulances
-              </div>
+              <div className="text-sm text-gray-400">Available Ambulances</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-warning-orange">
+              <div className="text-3xl font-bold text-[#F59E0B]">
                 {mapData?.totalIncidents || 0}
               </div>
-              <div className="text-sm text-neutral-gray">Active Incidents</div>
+              <div className="text-sm text-gray-400">Active Incidents</div>
             </div>
           </div>
         </div>

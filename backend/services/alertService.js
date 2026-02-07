@@ -192,49 +192,58 @@ class AlertService {
         });
       }
 
-      // Check High Risk Accidents (New Logic for Incident Model)
-      const highRiskIncidents = await AccidentIncident.find({
+      // Check Accidents (Include all severities)
+      const recentIncidents = await AccidentIncident.find({
         zone: zone,
         timestamp: { $gte: yesterday },
-        // Check for ANY severity if user wants "alerts" for all incidents,
-        // but typically alerts are for higher severity.
-        // Let's broaden to Medium+ to ensure more visibility as requested.
-        $or: [{ severity: "Medium" }, { severity: "High" }, { severity: "Critical" }]
       }).sort({ timestamp: -1 });
 
-      highRiskIncidents.forEach((incident) => {
+      recentIncidents.forEach((incident) => {
         let alertSeverity = "INFO";
-        if (incident.severity === "Critical") alertSeverity = "CRITICAL";
-        else if (incident.severity === "High") alertSeverity = "HIGH"; // Corrected from HIGH to CRITICAL/WARNING?
-        // Note: Alert model usually expects "CRITICAL", "WARNING", "INFO".
-        // Let's map correctly.
-        
-        if (incident.severity === "Critical") alertSeverity = "CRITICAL";
-        else if (incident.severity === "High") alertSeverity = "WARNING"; // Map High -> Warning to fit standard levels? Or keep High?
-        // User asked for "High severity accident -> High alert".
-        // My getAlertTypeSeverity returns Critical/High/Medium/Low.
-        // The dashboard colors depend on these strings.
-        // Let's stick to what getAlertTypeSeverity uses or map directly.
-        // Dashboard expects: CRITICAL, WARNING, INFO usually.
-        // Let's try to map: Critical->CRITICAL, High->WARNING, Medium->INFO
-        
-        // Wait, the user prompt says: "High severity accident -> High alert"
-        // Let's use the severity from the incident directly if it matches alert types.
-        
+        const incSev = incident.severity.toUpperCase();
+
+        if (incSev === "CRITICAL") alertSeverity = "CRITICAL";
+        else if (incSev === "HIGH")
+          alertSeverity = "WARNING"; // High severity accident -> Warning alert (or High)
+        else if (incSev === "MEDIUM")
+          alertSeverity = "INFO"; // Medium -> Info
+        else alertSeverity = "INFO"; // Low -> Info
+
+        // User requested strict action colors:
+        // Critical -> Red
+        // Warning -> Amber
+        // Info -> Green/Blue
+        // So let's map strictly to what the frontend expects: CRITICAL, WARNING, INFO
+
+        // However, if the user wants "High" to be "High Risk", we should use CRITICAL or WARNING.
+        // Let's stick to the mapping:
+        // Incident Critical -> Alert CRITICAL
+        // Incident High -> Alert WARNING
+        // Incident Medium -> Alert WARNING (or INFO?) -> Let's make Medium = WARNING to be safe
+        // Incident Low -> Alert INFO
+
+        if (incSev === "CRITICAL") alertSeverity = "CRITICAL";
+        else if (incSev === "HIGH") alertSeverity = "WARNING";
+        else if (incSev === "MEDIUM")
+          alertSeverity = "WARNING"; // Elevate Medium to Warning for visibility
+        else alertSeverity = "INFO";
+
         alerts.push({
           id: `incident_alert_${zone}_${incident._id}`,
           type: "ACCIDENT_HOTSPOT",
           zone: zone,
           hospitalName: `${zone} Emergency`,
-          severity: incident.severity.toUpperCase(), // "CRITICAL", "HIGH", "MEDIUM"
+          severity: alertSeverity,
           message: `${incident.severity} Severity Incident in ${zone}`,
-          description: incident.description || `${incident.severity} severity accident reported in ${zone} zone.`,
+          description:
+            incident.description ||
+            `${incident.severity} severity accident reported in ${zone} zone.`,
           timestamp: incident.timestamp,
           status: "active",
           details: {
             riskLevel: incident.riskLevel,
             type: incident.type,
-            notes: incident.description || "No additional details"
+            notes: incident.description || "No additional details",
           },
         });
       });
@@ -251,22 +260,28 @@ class AlertService {
 
       // Iterate through all high risk logs instead of just the latest one
       highRiskLogs.forEach((latestHighRisk) => {
-          alerts.push({
-            id: `dispatch_risk_${zone}_${latestHighRisk._id}`,
-            type: "HIGH_RISK_DISPATCH",
-            zone: zone,
-            hospitalName: latestHighRisk.hospital ? latestHighRisk.hospital.name : `${zone} Hospital`,
-            severity: "CRITICAL", // Force Critical for High Risk Dispatch
-            message: `High Risk Accident Dispatch in ${zone}`,
-            description: latestHighRisk.description || `Critical ambulance dispatch reported in ${zone} zone.`,
-            timestamp: latestHighRisk.timestamp,
-            status: "active",
-            details: {
-              riskLevel: latestHighRisk.riskLevel,
-              ambulanceId: latestHighRisk.ambulanceId ? latestHighRisk.ambulanceId.ambulanceId : "Unassigned",
-              notes: latestHighRisk.description || "No additional details"
-            },
-          });
+        alerts.push({
+          id: `dispatch_risk_${zone}_${latestHighRisk._id}`,
+          type: "HIGH_RISK_DISPATCH",
+          zone: zone,
+          hospitalName: latestHighRisk.hospital
+            ? latestHighRisk.hospital.name
+            : `${zone} Hospital`,
+          severity: "CRITICAL", // Force Critical for High Risk Dispatch
+          message: `High Risk Accident Dispatch in ${zone}`,
+          description:
+            latestHighRisk.description ||
+            `Critical ambulance dispatch reported in ${zone} zone.`,
+          timestamp: latestHighRisk.timestamp,
+          status: "active",
+          details: {
+            riskLevel: latestHighRisk.riskLevel,
+            ambulanceId: latestHighRisk.ambulanceId
+              ? latestHighRisk.ambulanceId.ambulanceId
+              : "Unassigned",
+            notes: latestHighRisk.description || "No additional details",
+          },
+        });
       });
 
       // Check Accident Risk

@@ -21,7 +21,7 @@ const AccidentLogForm = () => {
     severity: "Medium",
     riskLevel: "Medium",
     description: "",
-    timestamp: "",
+    timestamp: new Date().toISOString().slice(0, 16),
   });
 
   const [loading, setLoading] = useState(false);
@@ -174,37 +174,37 @@ const AccidentLogForm = () => {
     formData.location && formData.hospital && formData.timestamp;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="bg-red-600 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <Car className="h-8 w-8 text-white" />
+          <div className="bg-red-600/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center border border-red-500/20 shadow-lg shadow-red-900/20">
+            <Car className="h-8 w-8 text-red-500" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Accident Dispatch Form
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             Log accident details and dispatch ambulance resources
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-[#0A0A0A] rounded-xl shadow-lg p-8 border border-white/10">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Location / Zone */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Location (Zone)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-400" />
+                  <MapPin className="h-5 w-5 text-gray-500" />
                 </div>
                 <select
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444] focus:border-transparent placeholder-gray-500"
                 >
                   <option value="">Select Zone</option>
                   {zones.map((z) => (
@@ -218,18 +218,18 @@ const AccidentLogForm = () => {
 
             {/* Registered Hospital */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Registered Hospital
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Building2 className="h-5 w-5 text-gray-400" />
+                  <Building2 className="h-5 w-5 text-gray-500" />
                 </div>
                 <select
                   name="hospital"
                   value={formData.hospital}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444] focus:border-transparent"
                 >
                   <option value="">Select Hospital</option>
                   {hospitals.map((h) => (
@@ -243,18 +243,18 @@ const AccidentLogForm = () => {
 
             {/* Available Ambulance */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Available Ambulance
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Car className="h-5 w-5 text-gray-400" />
+                  <Car className="h-5 w-5 text-gray-500" />
                 </div>
                 <select
                   name="availableAmbulance"
                   value={formData.availableAmbulance}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444] focus:border-transparent"
                 >
                   <option value="">Select Ambulance</option>
                   {ambulances.length === 0 && (
@@ -279,14 +279,14 @@ const AccidentLogForm = () => {
             {/* Severity & Risk */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Severity
                 </label>
                 <select
                   name="severity"
                   value={formData.severity}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                  className="w-full p-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444]"
                 >
                   {severities.map((s) => (
                     <option key={s} value={s}>
@@ -296,14 +296,14 @@ const AccidentLogForm = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Risk Level
                 </label>
                 <select
                   name="riskLevel"
                   value={formData.riskLevel}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                  className="w-full p-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444]"
                 >
                   {riskLevels.map((r) => (
                     <option key={r} value={r}>
@@ -316,26 +316,26 @@ const AccidentLogForm = () => {
 
             {/* Timestamp */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Timestamp
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Clock className="h-5 w-5 text-gray-400" />
+                  <Clock className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
                   type="datetime-local"
                   name="timestamp"
                   value={formData.timestamp}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                  className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444]"
                 />
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Description
               </label>
               <textarea
@@ -343,20 +343,20 @@ const AccidentLogForm = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows="3"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                className="w-full p-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#EF4444] placeholder-gray-500"
                 placeholder="Details about the accident..."
               ></textarea>
             </div>
 
             {/* Feedback */}
             {error && (
-              <div className="flex items-center space-x-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              <div className="flex items-center space-x-2 bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-4 py-3 rounded-lg">
                 <AlertCircle className="h-5 w-5" />
                 <span>{error}</span>
               </div>
             )}
             {success && (
-              <div className="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+              <div className="flex items-center space-x-2 bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-4 py-3 rounded-lg">
                 <CheckCircle className="h-5 w-5" />
                 <span>{success}</span>
               </div>
@@ -368,8 +368,8 @@ const AccidentLogForm = () => {
               disabled={loading || !isFormValid}
               className={`w-full py-4 rounded-lg font-bold text-white transition-all ${
                 loading || !isFormValid
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-red-600 hover:bg-red-700 shadow-lg"
+                  ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                  : "bg-[#EF4444] hover:bg-red-700 shadow-lg shadow-red-900/20"
               }`}
             >
               {loading ? (

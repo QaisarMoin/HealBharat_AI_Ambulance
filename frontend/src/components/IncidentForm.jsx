@@ -127,36 +127,36 @@ const IncidentForm = () => {
     formData.type.trim() && formData.zone && formData.timestamp;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
+    <div className="min-h-screen bg-black py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="bg-orange-500 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <AlertTriangle className="h-8 w-8 text-white" />
+          <div className="bg-amber-600/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center border border-amber-500/20 shadow-lg shadow-amber-900/20">
+            <AlertTriangle className="h-8 w-8 text-amber-500" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Report Incident
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             Log emergency incidents and accidents for immediate response
           </p>
         </div>
 
         {/* Form Card */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-[#0A0A0A] rounded-xl shadow-lg p-8 border border-white/10">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Incident Type */}
               <div>
                 <label
                   htmlFor="type"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Incident Type
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FileText className="h-5 w-5 text-gray-400" />
+                    <FileText className="h-5 w-5 text-gray-500" />
                   </div>
                   <input
                     type="text"
@@ -165,7 +165,7 @@ const IncidentForm = () => {
                     value={formData.type}
                     onChange={handleInputChange}
                     placeholder="e.g. Car Accident, Fire, Medical Emergency"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -174,20 +174,20 @@ const IncidentForm = () => {
               <div>
                 <label
                   htmlFor="zone"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Zone
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-gray-500" />
                   </div>
                   <select
                     id="zone"
                     name="zone"
                     value={formData.zone}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors"
                   >
                     <option value="">Select a zone</option>
                     {zones.map((zone) => (
@@ -204,20 +204,20 @@ const IncidentForm = () => {
                 <div>
                   <label
                     htmlFor="severity"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-300 mb-2"
                   >
                     Severity
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Activity className="h-5 w-5 text-gray-400" />
+                      <Activity className="h-5 w-5 text-gray-500" />
                     </div>
                     <select
                       id="severity"
                       name="severity"
                       value={formData.severity}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors"
                     >
                       {severities.map((sev) => (
                         <option key={sev} value={sev}>
@@ -231,20 +231,20 @@ const IncidentForm = () => {
                 <div>
                   <label
                     htmlFor="riskLevel"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-300 mb-2"
                   >
                     Risk Level
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <AlertCircle className="h-5 w-5 text-gray-400" />
+                      <AlertCircle className="h-5 w-5 text-gray-500" />
                     </div>
                     <select
                       id="riskLevel"
                       name="riskLevel"
                       value={formData.riskLevel}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors"
                     >
                       {riskLevels.map((risk) => (
                         <option key={risk} value={risk}>
@@ -261,13 +261,13 @@ const IncidentForm = () => {
                 <div>
                   <label
                     htmlFor="timestamp"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-300 mb-2"
                   >
                     Date & Time
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Clock className="h-5 w-5 text-gray-400" />
+                      <Clock className="h-5 w-5 text-gray-500" />
                     </div>
                     <input
                       type="datetime-local"
@@ -275,7 +275,7 @@ const IncidentForm = () => {
                       name="timestamp"
                       value={formData.timestamp}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors"
                     />
                   </div>
                 </div>
@@ -283,13 +283,13 @@ const IncidentForm = () => {
                 <div>
                   <label
                     htmlFor="victimCount"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-300 mb-2"
                   >
                     Victim Count (Optional)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Users className="h-5 w-5 text-gray-400" />
+                      <Users className="h-5 w-5 text-gray-500" />
                     </div>
                     <input
                       type="number"
@@ -299,7 +299,7 @@ const IncidentForm = () => {
                       onChange={handleInputChange}
                       placeholder="Number of victims"
                       min="0"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                      className="w-full pl-10 pr-4 py-3 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors placeholder-gray-500"
                     />
                   </div>
                 </div>
@@ -309,7 +309,7 @@ const IncidentForm = () => {
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-gray-300 mb-2"
                 >
                   Description (Optional)
                 </label>
@@ -320,20 +320,20 @@ const IncidentForm = () => {
                   onChange={handleInputChange}
                   placeholder="Additional details about the incident..."
                   rows="3"
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors resize-none"
+                  className="w-full p-4 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-colors resize-none placeholder-gray-500"
                 ></textarea>
               </div>
 
               {/* Status Messages */}
               {error && (
-                <div className="flex items-center space-x-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center space-x-2 bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-4 py-3 rounded-lg">
                   <AlertCircle className="h-5 w-5" />
                   <span className="text-sm">{error}</span>
                 </div>
               )}
 
               {success && (
-                <div className="flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                <div className="flex items-center space-x-2 bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-4 py-3 rounded-lg">
                   <CheckCircle className="h-5 w-5" />
                   <span className="text-sm">{success}</span>
                 </div>
@@ -345,8 +345,8 @@ const IncidentForm = () => {
                 disabled={loading || !isFormValid}
                 className={`w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-lg font-semibold transition-all duration-200 ${
                   loading || !isFormValid
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-600 text-white hover:bg-orange-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                    : "bg-[#F59E0B] text-white hover:bg-amber-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 }`}
               >
                 {loading ? (
@@ -365,11 +365,11 @@ const IncidentForm = () => {
           </div>
 
           {/* Instructions */}
-          <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          <div className="mt-6 bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10">
+            <h3 className="text-lg font-semibold text-white mb-3">
               Instructions
             </h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <ul className="space-y-2 text-sm text-gray-400">
               <li>• Incident Type and Zone are mandatory fields</li>
               <li>• Set Severity and Risk Level to help with prioritization</li>
               <li>• Use the correct timestamp for when the incident occurred</li>

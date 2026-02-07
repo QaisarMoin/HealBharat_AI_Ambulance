@@ -46,21 +46,21 @@ const Alerts = () => {
 
   useEffect(() => {
     fetchAlerts();
-    // Refresh every 60 seconds
-    const interval = setInterval(fetchAlerts, 60000);
+    // Refresh every 15 seconds
+    const interval = setInterval(fetchAlerts, 15000);
     return () => clearInterval(interval);
   }, []);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
       case "CRITICAL":
-        return "text-emergency-red bg-red-100 border-red-200";
+        return "text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/20";
       case "WARNING":
-        return "text-warning-orange bg-orange-100 border-orange-200";
+        return "text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20";
       case "INFO":
-        return "text-info-blue bg-blue-100 border-blue-200";
+        return "text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20";
       default:
-        return "text-neutral-gray bg-gray-100 border-gray-200";
+        return "text-gray-400 bg-white/5 border-white/10";
     }
   };
 
@@ -95,8 +95,8 @@ const Alerts = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <Loader2 className="mx-auto h-12 w-12 animate-spin text-info-blue" />
-          <p className="mt-4 text-lg text-neutral-gray">Loading alerts...</p>
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-[#10B981]" />
+          <p className="mt-4 text-lg text-gray-400">Loading alerts...</p>
         </div>
       </div>
     );
@@ -106,15 +106,15 @@ const Alerts = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-            <AlertCircle className="mx-auto h-12 w-12 text-emergency-red" />
-            <h2 className="mt-4 text-xl font-semibold text-dark-navy">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 text-center border border-white/10">
+            <AlertCircle className="mx-auto h-12 w-12 text-[#EF4444]" />
+            <h2 className="mt-4 text-xl font-semibold text-white">
               Connection Error
             </h2>
-            <p className="mt-2 text-neutral-gray">{error}</p>
+            <p className="mt-2 text-gray-400">{error}</p>
             <button
               onClick={fetchAlerts}
-              className="mt-4 bg-info-blue text-white px-4 py-2 rounded-lg hover:bg-info-blue/90 transition-colors"
+              className="mt-4 bg-[#10B981] text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
             >
               Retry
             </button>
@@ -127,33 +127,33 @@ const Alerts = () => {
   return (
     <div>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-black/95 shadow-sm border-b border-white/10 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-warning-orange p-3 rounded-lg">
-                <AlertTriangle className="h-8 w-8 text-white" />
+              <div className="bg-[#F59E0B]/10 p-3 rounded-lg border border-[#F59E0B]/20">
+                <AlertTriangle className="h-8 w-8 text-[#F59E0B]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-dark-navy">
+                <h1 className="text-2xl font-bold text-white">
                   Emergency Alerts
                 </h1>
-                <p className="text-sm text-neutral-gray">
+                <p className="text-sm text-gray-400">
                   Real-time alerts and notifications
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-neutral-gray">Last Updated</p>
-                <p className="font-mono text-sm font-medium text-dark-navy">
+                <p className="text-sm text-gray-400">Last Updated</p>
+                <p className="font-mono text-sm font-medium text-white">
                   {new Date().toLocaleTimeString()}
                 </p>
               </div>
               <button
                 onClick={fetchAlerts}
                 disabled={loading}
-                className="flex items-center space-x-2 bg-white border border-gray-300 text-dark-navy px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-2 bg-white/5 border border-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
               >
                 <RefreshCw
                   className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -167,30 +167,30 @@ const Alerts = () => {
 
       {/* Filters */}
       <div className="container mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 mb-6 border border-white/10">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             {/* Search */}
             <div className="flex items-center space-x-2 flex-1 max-w-md">
-              <Search className="h-5 w-5 text-neutral-gray" />
+              <Search className="h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search alerts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+                className="flex-1 px-3 py-2 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-1 focus:ring-[#10B981] focus:border-[#10B981] placeholder-gray-500"
               />
             </div>
 
             {/* Filters */}
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-neutral-gray" />
+                <Filter className="h-5 w-5 text-gray-400" />
                 <select
                   value={filters.severity}
                   onChange={(e) =>
                     setFilters({ ...filters, severity: e.target.value })
                   }
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+                  className="px-3 py-2 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-1 focus:ring-[#10B981] focus:border-[#10B981]"
                 >
                   <option value="ALL">All Severities</option>
                   <option value="CRITICAL">Critical</option>
@@ -204,7 +204,7 @@ const Alerts = () => {
                 onChange={(e) =>
                   setFilters({ ...filters, hospital: e.target.value })
                 }
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-info-blue focus:border-transparent"
+                className="px-3 py-2 bg-[#111111] border border-white/10 text-white rounded-lg focus:ring-1 focus:ring-[#10B981] focus:border-[#10B981]"
               >
                 <option value="ALL">All Hospitals</option>
                 {uniqueHospitals.map((hospital) => (
@@ -219,67 +219,76 @@ const Alerts = () => {
 
         {/* Alert Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10 relative overflow-hidden group">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F59E0B]"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Total Alerts
                 </p>
-                <p className="text-2xl font-bold text-dark-navy">
+                <p className="text-2xl font-bold text-white">
                   {alerts.length}
                 </p>
               </div>
-              <AlertTriangle className="h-12 w-12 text-warning-orange" />
+              <AlertTriangle className="h-12 w-12 text-[#F59E0B] opacity-80 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10 relative overflow-hidden group">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#EF4444]"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Critical Alerts
                 </p>
-                <p className="text-2xl font-bold text-emergency-red">
+                <p className="text-2xl font-bold text-[#EF4444]">
                   {alerts.filter((a) => a.severity === "CRITICAL").length}
                 </p>
               </div>
-              <AlertCircle className="h-12 w-12 text-emergency-red" />
+              <AlertCircle className="h-12 w-12 text-[#EF4444] opacity-80 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-[#0A0A0A] rounded-lg shadow-lg p-6 border border-white/10 relative overflow-hidden group">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-gray">
+                <p className="text-sm font-medium text-gray-400">
                   Active Hospitals
                 </p>
-                <p className="text-2xl font-bold text-info-blue">
+                <p className="text-2xl font-bold text-[#10B981]">
                   {uniqueHospitals.length}
                 </p>
               </div>
-              <MapPin className="h-12 w-12 text-info-blue" />
+              <MapPin className="h-12 w-12 text-[#10B981] opacity-80 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
         </div>
 
         {/* Alerts List */}
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-dark-navy">
+        <div className="bg-[#0A0A0A] rounded-lg shadow-lg border border-white/10">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-lg font-semibold text-white">
               Recent Alerts
             </h2>
-            <p className="text-sm text-neutral-gray mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               {filteredAlerts.length} alert
               {filteredAlerts.length !== 1 ? "s" : ""} found
             </p>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-white/10">
             {filteredAlerts.length > 0 ? (
               filteredAlerts.map((alert, index) => (
                 <div
                   key={index}
-                  className="p-6 hover:bg-gray-50 transition-colors"
+                  className={`p-6 hover:bg-white/5 transition-colors border-l-4 ${
+                    alert.severity === "CRITICAL"
+                      ? "border-l-[#EF4444] bg-[#EF4444]/5"
+                      : alert.severity === "WARNING"
+                      ? "border-l-[#F59E0B] bg-[#F59E0B]/5"
+                      : "border-l-[#10B981] bg-[#10B981]/5"
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
@@ -288,13 +297,13 @@ const Alerts = () => {
                         className={`p-2 rounded-full ${getSeverityColor(alert.severity).split(" ")[1]} ${getSeverityColor(alert.severity).split(" ")[2]}`}
                       >
                         {alert.severity === "CRITICAL" && (
-                          <AlertCircle className="h-5 w-5 text-emergency-red" />
+                          <AlertCircle className="h-5 w-5 text-[#EF4444]" />
                         )}
                         {alert.severity === "WARNING" && (
-                          <AlertTriangle className="h-5 w-5 text-warning-orange" />
+                          <AlertTriangle className="h-5 w-5 text-[#F59E0B]" />
                         )}
                         {alert.severity === "INFO" && (
-                          <CheckCircle className="h-5 w-5 text-info-blue" />
+                          <CheckCircle className="h-5 w-5 text-[#10B981]" />
                         )}
                       </div>
 
@@ -302,21 +311,21 @@ const Alerts = () => {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-2">
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(alert.severity)}`}
+                            className={`px-2 py-1 text-xs font-medium rounded-full border ${getSeverityColor(alert.severity)}`}
                           >
                             {alert.severity}
                           </span>
-                          <span className="text-sm text-neutral-gray flex items-center space-x-1">
+                          <span className="text-sm text-gray-400 flex items-center space-x-1">
                             <Clock className="h-4 w-4" />
                             <span>{formatTime(alert.timestamp)}</span>
                           </span>
-                          <span className="text-sm text-neutral-gray flex items-center space-x-1">
+                          <span className="text-sm text-gray-400 flex items-center space-x-1">
                             <MapPin className="h-4 w-4" />
                             <span>{alert.hospitalName}</span>
                           </span>
                         </div>
 
-                        <h3 className="text-lg font-medium text-dark-navy mb-2">
+                        <h3 className="text-lg font-medium text-white mb-2">
                           {alert.message}
                         </h3>
 
@@ -329,7 +338,7 @@ const Alerts = () => {
                                   [index]: !showDetails[index],
                                 })
                               }
-                              className="text-sm text-info-blue hover:text-info-blue/80 flex items-center space-x-1"
+                              className="text-sm text-[#10B981] hover:text-emerald-400 flex items-center space-x-1 transition-colors"
                             >
                               {showDetails[index] ? (
                                 <EyeOff className="h-4 w-4" />
@@ -341,7 +350,7 @@ const Alerts = () => {
                               </span>
                             </button>
                             {showDetails[index] && (
-                              <p className="text-sm text-neutral-gray mt-2 bg-gray-50 p-3 rounded-lg">
+                              <p className="text-sm text-gray-300 mt-2 bg-[#111111] p-3 rounded-lg border border-white/10">
                                 {alert.description}
                               </p>
                             )}
@@ -354,9 +363,9 @@ const Alerts = () => {
               ))
             ) : (
               <div className="p-8 text-center">
-                <CheckCircle className="mx-auto h-12 w-12 text-success-green" />
-                <p className="mt-4 text-lg text-dark-navy">No alerts found</p>
-                <p className="mt-2 text-neutral-gray">
+                <CheckCircle className="mx-auto h-12 w-12 text-[#10B981]" />
+                <p className="mt-4 text-lg text-white">No alerts found</p>
+                <p className="mt-2 text-gray-400">
                   Try adjusting your filters or search terms
                 </p>
               </div>
