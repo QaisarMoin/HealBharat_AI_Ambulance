@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Activity,
   Zap,
+  X,
 } from "lucide-react";
 
 const AIInsights = () => {
@@ -15,6 +16,9 @@ const AIInsights = () => {
   const [earlyAlerts, setEarlyAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [selectedZone, setSelectedZone] = useState(null);
+  const [zoneIncidents, setZoneIncidents] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -96,6 +100,27 @@ const AIInsights = () => {
       default:
         return "text-white";
     }
+  };
+
+  const handleZoneClick = async (zone) => {
+    setSelectedZone(zone);
+    setModalLoading(true);
+    try {
+      const response = await fetch(`/api/incidents?zone=${zone}`);
+      if (response.ok) {
+        const result = await response.json();
+        setZoneIncidents(result.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching zone incidents:", err);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedZone(null);
+    setZoneIncidents([]);
   };
 
   if (loading && predictions.length === 0) {
@@ -182,13 +207,15 @@ const AIInsights = () => {
       {/* Zone Predictions Grid */}
       <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
         <Activity className="h-5 w-5 mr-2 text-[#3B82F6]" />
-        Zone-wise Risk Predictions
+        Zone-wise Risk Predictions{" "}
+        <span className="text-[#10B981]"> (Click to view details)</span>
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {predictions.map((pred, idx) => (
           <div
             key={idx}
-            className={`bg-[#0A0A0A] rounded-xl shadow-lg overflow-hidden border border-white/10 border-t-4 ${
+            onClick={() => handleZoneClick(pred.zone)}
+            className={`cursor-pointer transition-transform hover:scale-[1.02] bg-[#0A0A0A] rounded-xl shadow-lg overflow-hidden border border-white/10 border-t-4 ${
               pred.overallRisk === "High"
                 ? "border-t-[#EF4444]"
                 : pred.overallRisk === "Medium"
@@ -289,6 +316,91 @@ const AIInsights = () => {
           </div>
         ))}
       </div>
+
+      {/* Incident Modal */}
+      {selectedZone && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0A0A0A] rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-white/10 ring-1 ring-white/10">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#111111] rounded-t-xl">
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {selectedZone} Zone Activity
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Recent accidents and incidents
+                </p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {modalLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#10B981]" />
+                </div>
+              ) : zoneIncidents.length > 0 ? (
+                <div className="space-y-4">
+                  {zoneIncidents.map((incident) => (
+                    <div
+                      key={incident._id}
+                      className="bg-[#111111] p-4 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-1 text-xs font-bold rounded border ${
+                              incident.severity === "Critical"
+                                ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20"
+                                : incident.severity === "High"
+                                  ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
+                                  : "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20"
+                            }`}
+                          >
+                            {incident.severity}
+                          </span>
+                          <span className="text-white font-medium">
+                            {incident.type}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {new Date(incident.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm mb-3">
+                        {incident.description || "No description provided."}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-white/5">
+                        <span>Risk Level: {incident.riskLevel}</span>
+                        <span>
+                          Reported:{" "}
+                          {new Date(incident.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="bg-[#111111] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                    <CheckCircle className="h-8 w-8 text-[#10B981]" />
+                  </div>
+                  <h4 className="text-lg font-medium text-white mb-2">
+                    All Clear
+                  </h4>
+                  <p className="text-gray-400">
+                    No active incidents reported in this zone recently.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

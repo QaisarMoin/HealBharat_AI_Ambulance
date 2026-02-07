@@ -5,7 +5,14 @@ const AccidentIncident = require("../models/AccidentIncident");
 // GET all incidents
 router.get("/", async (req, res) => {
   try {
-    const incidents = await AccidentIncident.find().sort({ timestamp: -1 });
+    const { zone } = req.query;
+    const query = {};
+    if (zone) {
+      query.zone = zone;
+    }
+    const incidents = await AccidentIncident.find(query).sort({
+      timestamp: -1,
+    });
     res.json({ success: true, data: incidents });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
