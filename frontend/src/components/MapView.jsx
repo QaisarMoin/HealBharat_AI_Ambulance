@@ -35,7 +35,7 @@ const MapView = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/dashboard/map");
+      const response = await fetch("/api/dashboard/map");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -226,9 +226,9 @@ const MapView = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Map Container */}
-          <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+          <div className="lg:col-span-3 bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-dark-navy">City Map</h2>
+              <h2 className="text-lg font-semibold text-dark-navy">Hospital Status Map</h2>
               <div className="flex items-center space-x-4 text-sm text-neutral-gray">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-success-green rounded-full"></div>
@@ -245,24 +245,27 @@ const MapView = () => {
               </div>
             </div>
 
-            {/* Simplified Map Visualization */}
+            {/* Map Grid Visualization */}
             <div className="relative bg-gray-100 rounded-lg p-8 min-h-96">
-              <div className="grid grid-cols-3 gap-6">
-                {mapData?.hospitals?.map((hospital, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {mapData?.hospitals?.map((hospital, index) => {
+                  const pressureLevel = hospital.status === "Critical" ? "CRITICAL" : hospital.status === "High" ? "WARNING" : "NORMAL";
+                  const capacityPercentage = Math.round((hospital.currentPatients / hospital.capacity) * 100);
+                  
+                  return (
                   <div
                     key={index}
-                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-lg ${
+                    className={`relative p-4 rounded-lg border-2 transition-all hover:shadow-lg ${
                       filters.showPressure
-                        ? getPressureLevelColor(hospital.pressureLevel) +
+                        ? getPressureLevelColor(pressureLevel) +
                           " bg-opacity-20"
                         : "bg-white"
                     }`}
-                    onClick={() => setSelectedHospital(hospital)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <MapPin
-                          className={`h-5 w-5 ${getPressureLevelText(hospital.pressureLevel)}`}
+                          className={`h-5 w-5 ${getPressureLevelText(pressureLevel)}`}
                         />
                         <span className="font-medium text-dark-navy">
                           {hospital.name}
@@ -281,12 +284,12 @@ const MapView = () => {
                     {filters.showPressure && (
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-sm font-medium ${getPressureLevelText(hospital.pressureLevel)}`}
+                          className={`text-sm font-medium ${getPressureLevelText(pressureLevel)}`}
                         >
-                          {hospital.pressureLevel}
+                          {pressureLevel}
                         </span>
                         <span className="text-sm text-neutral-gray">
-                          {hospital.capacityPercentage}% capacity
+                          {capacityPercentage}% capacity
                         </span>
                       </div>
                     )}
@@ -295,92 +298,14 @@ const MapView = () => {
                       <div className="mt-2 flex items-center space-x-2">
                         <AlertTriangle className="h-4 w-4 text-warning-orange" />
                         <span className="text-sm text-warning-orange font-medium">
-                          {hospital.activeIncidents} incidents
+                          {hospital.activeIncidents} zone incidents
                         </span>
                       </div>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             </div>
-          </div>
-
-          {/* Hospital Details */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-dark-navy mb-4">
-              Hospital Details
-            </h2>
-
-            {selectedHospital ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-dark-navy">
-                    {selectedHospital.name}
-                  </h3>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getPressureLevelText(selectedHospital.pressureLevel)} bg-opacity-20 ${getPressureLevelColor(selectedHospital.pressureLevel)}`}
-                  >
-                    {selectedHospital.pressureLevel}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-neutral-gray">Location</p>
-                    <p className="font-medium">{selectedHospital.location}</p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-neutral-gray">Capacity</p>
-                    <p className="font-medium">
-                      {selectedHospital.capacityPercentage}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-neutral-gray">
-                      Available Ambulances
-                    </p>
-                    <p className="font-medium text-success-green">
-                      {selectedHospital.availableAmbulances}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-neutral-gray">
-                      Active Incidents
-                    </p>
-                    <p className="font-medium text-warning-orange">
-                      {selectedHospital.activeIncidents}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-neutral-gray mb-2">
-                    Recent Alerts
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedHospital.recentAlerts?.map((alert, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-2 text-sm"
-                      >
-                        <AlertTriangle
-                          className={`h-4 w-4 ${getPressureLevelText(alert.severity)}`}
-                        />
-                        <span>{alert.message}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <MapPin className="mx-auto h-12 w-12 text-neutral-gray" />
-                <p className="mt-4 text-lg text-dark-navy">Select a hospital</p>
-                <p className="mt-2 text-neutral-gray">
-                  Click on any hospital on the map to view details
-                </p>
-              </div>
-            )}
           </div>
         </div>
 

@@ -27,6 +27,20 @@ const ambulanceLogSchema = new mongoose.Schema(
       min: [1, "Patient count must be at least 1"],
       max: [10, "Patient count cannot exceed 10"],
     },
+    riskLevel: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
+      default: "Low"
+    },
+    description: {
+      type: String,
+      trim: true
+    },
+    ambulanceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ambulance",
+      required: false
+    },
   },
   {
     timestamps: true,

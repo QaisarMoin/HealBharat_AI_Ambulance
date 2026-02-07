@@ -1,12 +1,15 @@
 // import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { LayoutDashboard, AlertTriangle, Map, Database } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Map, Database, Brain, Settings } from "lucide-react";
 
 const Sidebar = () => {
   const tabs = [
     { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { id: "ai-insights", name: "AI Insights", icon: Brain, path: "/ai-insights" },
     { id: "alerts", name: "Alerts", icon: AlertTriangle, path: "/alerts" },
+    { id: "accident-log", name: "Accident Form", icon: AlertTriangle, path: "/accident-log" },
     { id: "map", name: "Map View", icon: Map, path: "/map" },
+    { id: "manage", name: "Manage Resources", icon: Settings, path: "/manage" },
     { id: "import", name: "Data Import", icon: Database, path: "/data" },
   ];
 

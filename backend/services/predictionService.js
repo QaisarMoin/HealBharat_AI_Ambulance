@@ -1,5 +1,6 @@
 const Hospital = require("../models/Hospital");
 const AmbulanceLog = require("../models/AmbulanceLog");
+const Ambulance = require("../models/Ambulance");
 const AccidentIncident = require("../models/AccidentIncident");
 const WeatherContext = require("../models/WeatherContext");
 const TimeContext = require("../models/TimeContext");
@@ -76,10 +77,18 @@ class PredictionService {
 
     // Calculate enhanced metrics
     const edPressure = this.calculateEDPressure(recentLogs, historicalLogs);
+    
+    // Fetch real ambulance availability
+    const availableAmbulances = await Ambulance.countDocuments({ zone: zone, status: "Available" });
+    const totalAmbulances = await Ambulance.countDocuments({ zone: zone });
+    
     const ambulancePressure = this.calculateAmbulancePressure(
       recentLogs,
       historicalLogs,
+      availableAmbulances,
+      totalAmbulances
     );
+
     const accidentRisk = this.calculateAccidentRisk(
       recentAccidents,
       historicalAccidents,
@@ -180,9 +189,18 @@ class PredictionService {
   }
 
   /**
-   * Calculate ambulance pressure with time-series analysis
+   * Calculate ambulance pressure with time-series analysis and real availability
    */
-  static calculateAmbulancePressure(recentLogs, historicalLogs = []) {
+  static calculateAmbulancePressure(recentLogs, historicalLogs = [], available = 0, total = 0) {
+    // If we have fleet data, use it as primary metric
+    if (total > 0) {
+      const availabilityRatio = available / total;
+      if (availabilityRatio < 0.2) return "High"; // Less than 20% available
+      if (availabilityRatio < 0.5) return "Medium"; // Less than 50% available
+      return "Low";
+    }
+
+    // Fallback to log-based estimation if no fleet data
     const currentCount = recentLogs.length;
     const historicalCount = historicalLogs.length;
 

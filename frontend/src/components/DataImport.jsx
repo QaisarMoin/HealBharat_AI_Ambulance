@@ -178,7 +178,7 @@ const DataImport = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Import Form */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-dark-navy mb-6">
+            <h2 className="text-lg font-semibold text-black mb-6">
               Import Data
             </h2>
 
@@ -300,7 +300,7 @@ const DataImport = () => {
                 ) : (
                   <>
                     <Upload className="h-5 w-5" />
-                    <span>Import Data</span>
+                    <span className="text-black">Import Data</span>
                   </>
                 )}
               </button>

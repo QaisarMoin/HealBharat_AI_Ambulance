@@ -27,13 +27,13 @@ const Dashboard = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5001/api/dashboard/summary",
+        "/api/dashboard/summary",
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setDashboardData(data);
+      setDashboardData(data.data || data); // Handle wrapped response
       setLastUpdated(new Date());
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -58,6 +58,8 @@ const Dashboard = () => {
         return "text-warning-orange";
       case "NORMAL":
         return "text-success-green";
+      case "NO DATA":
+        return "text-neutral-gray";
       default:
         return "text-neutral-gray";
     }
@@ -71,6 +73,8 @@ const Dashboard = () => {
         return "bg-orange-100 border-orange-200";
       case "NORMAL":
         return "bg-green-100 border-green-200";
+      case "NO DATA":
+        return "bg-gray-100 border-gray-200";
       default:
         return "bg-gray-100 border-gray-200";
     }
@@ -189,7 +193,9 @@ const Dashboard = () => {
                   Available Ambulances
                 </p>
                 <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.availableAmbulances || 0}
+                  {dashboardData?.totalAmbulances > 0 
+                    ? `${dashboardData?.availableAmbulances} / ${dashboardData?.totalAmbulances}`
+                    : "No Data"}
                 </p>
               </div>
               <Stethoscope className="h-12 w-12 text-success-green" />
@@ -204,7 +210,7 @@ const Dashboard = () => {
                   Active Incidents
                 </p>
                 <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.activeIncidents || 0}
+                  {dashboardData?.hospitalsMonitored > 0 ? dashboardData?.activeIncidents : "No Data"}
                 </p>
               </div>
               <AlertCircle className="h-12 w-12 text-warning-orange" />
@@ -219,7 +225,7 @@ const Dashboard = () => {
                   Hospitals Monitored
                 </p>
                 <p className="text-2xl font-bold text-dark-navy">
-                  {dashboardData?.hospitalsMonitored || 0}
+                  {dashboardData?.hospitalsMonitored > 0 ? dashboardData?.hospitalsMonitored : "No Data"}
                 </p>
               </div>
               <Users className="h-12 w-12 text-info-blue" />

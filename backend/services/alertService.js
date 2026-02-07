@@ -179,8 +179,10 @@ class AlertService {
           id: `ed_pressure_${zone}_${Date.now()}`,
           type: "ED_OVERLOAD_RISK",
           zone: zone,
-          severity: "High",
+          hospitalName: `${zone} Zone Hospitals`,
+          severity: "CRITICAL",
           message: `Emergency Department overload risk in ${zone} zone`,
+          description: `High patient volume detected across ${recentLogs.length} hospitals in ${zone} zone. Average load is ${this.getAverageLoad(recentLogs).toFixed(1)}.`,
           timestamp: now,
           status: "active",
           details: {
@@ -189,6 +191,83 @@ class AlertService {
           },
         });
       }
+
+      // Check High Risk Accidents (New Logic for Incident Model)
+      const highRiskIncidents = await AccidentIncident.find({
+        zone: zone,
+        timestamp: { $gte: yesterday },
+        // Check for ANY severity if user wants "alerts" for all incidents,
+        // but typically alerts are for higher severity.
+        // Let's broaden to Medium+ to ensure more visibility as requested.
+        $or: [{ severity: "Medium" }, { severity: "High" }, { severity: "Critical" }]
+      }).sort({ timestamp: -1 });
+
+      highRiskIncidents.forEach((incident) => {
+        let alertSeverity = "INFO";
+        if (incident.severity === "Critical") alertSeverity = "CRITICAL";
+        else if (incident.severity === "High") alertSeverity = "HIGH"; // Corrected from HIGH to CRITICAL/WARNING?
+        // Note: Alert model usually expects "CRITICAL", "WARNING", "INFO".
+        // Let's map correctly.
+        
+        if (incident.severity === "Critical") alertSeverity = "CRITICAL";
+        else if (incident.severity === "High") alertSeverity = "WARNING"; // Map High -> Warning to fit standard levels? Or keep High?
+        // User asked for "High severity accident -> High alert".
+        // My getAlertTypeSeverity returns Critical/High/Medium/Low.
+        // The dashboard colors depend on these strings.
+        // Let's stick to what getAlertTypeSeverity uses or map directly.
+        // Dashboard expects: CRITICAL, WARNING, INFO usually.
+        // Let's try to map: Critical->CRITICAL, High->WARNING, Medium->INFO
+        
+        // Wait, the user prompt says: "High severity accident -> High alert"
+        // Let's use the severity from the incident directly if it matches alert types.
+        
+        alerts.push({
+          id: `incident_alert_${zone}_${incident._id}`,
+          type: "ACCIDENT_HOTSPOT",
+          zone: zone,
+          hospitalName: `${zone} Emergency`,
+          severity: incident.severity.toUpperCase(), // "CRITICAL", "HIGH", "MEDIUM"
+          message: `${incident.severity} Severity Incident in ${zone}`,
+          description: incident.description || `${incident.severity} severity accident reported in ${zone} zone.`,
+          timestamp: incident.timestamp,
+          status: "active",
+          details: {
+            riskLevel: incident.riskLevel,
+            type: incident.type,
+            notes: incident.description || "No additional details"
+          },
+        });
+      });
+
+      // Check High Risk Dispatches (New Logic)
+      const highRiskLogs = await AmbulanceLog.find({
+        zone: zone,
+        riskLevel: "High",
+        timestamp: { $gte: yesterday },
+      })
+        .sort({ timestamp: -1 })
+        .populate("hospital")
+        .populate("ambulanceId"); // Ensure we get details
+
+      // Iterate through all high risk logs instead of just the latest one
+      highRiskLogs.forEach((latestHighRisk) => {
+          alerts.push({
+            id: `dispatch_risk_${zone}_${latestHighRisk._id}`,
+            type: "HIGH_RISK_DISPATCH",
+            zone: zone,
+            hospitalName: latestHighRisk.hospital ? latestHighRisk.hospital.name : `${zone} Hospital`,
+            severity: "CRITICAL", // Force Critical for High Risk Dispatch
+            message: `High Risk Accident Dispatch in ${zone}`,
+            description: latestHighRisk.description || `Critical ambulance dispatch reported in ${zone} zone.`,
+            timestamp: latestHighRisk.timestamp,
+            status: "active",
+            details: {
+              riskLevel: latestHighRisk.riskLevel,
+              ambulanceId: latestHighRisk.ambulanceId ? latestHighRisk.ambulanceId.ambulanceId : "Unassigned",
+              notes: latestHighRisk.description || "No additional details"
+            },
+          });
+      });
 
       // Check Accident Risk
       const recentAccidents = await AccidentIncident.find({
@@ -202,8 +281,10 @@ class AlertService {
           id: `accident_risk_${zone}_${Date.now()}`,
           type: "ACCIDENT_HOTSPOT",
           zone: zone,
-          severity: "High",
+          hospitalName: `${zone} Zone Emergency`,
+          severity: "CRITICAL",
           message: `Accident hotspot detected in ${zone} zone`,
+          description: `Multiple high-severity accidents reported in ${zone} zone. Total accidents: ${recentAccidents.length}.`,
           timestamp: now,
           status: "active",
           details: {
@@ -222,8 +303,10 @@ class AlertService {
           id: `ambulance_pressure_${zone}_${Date.now()}`,
           type: "AMBULANCE_OVERLOAD",
           zone: zone,
-          severity: "Medium",
+          hospitalName: `${zone} Zone Fleet`,
+          severity: "WARNING",
           message: `High ambulance activity in ${zone} zone`,
+          description: `Ambulance fleet is under high pressure. ${recentLogs.length} recent logs.`,
           timestamp: now,
           status: "active",
           details: {
@@ -246,8 +329,10 @@ class AlertService {
           id: `weather_alert_${zone}_${Date.now()}`,
           type: "SEVERE_WEATHER",
           zone: zone,
-          severity: "Medium",
+          hospitalName: `${zone} Zone Weather`,
+          severity: "WARNING",
           message: `Severe weather conditions in ${zone} zone: ${currentWeather.condition}`,
+          description: `Weather warning: ${currentWeather.condition}. Temperature: ${currentWeather.temperature}°C.`,
           timestamp: now,
           status: "active",
           details: {
@@ -272,8 +357,10 @@ class AlertService {
           id: `rush_hour_${zone}_${Date.now()}`,
           type: "RUSH_HOUR",
           zone: zone,
-          severity: "Low",
+          hospitalName: `${zone} Zone Traffic`,
+          severity: "INFO",
           message: `Rush hour traffic expected in ${zone} zone`,
+          description: `Traffic congestion likely due to rush hour. Delays expected for ambulance routing.`,
           timestamp: now,
           status: "active",
           details: {
@@ -355,6 +442,7 @@ class AlertService {
 
   static getAlertTypeSeverity(type) {
     const severityMap = {
+      HIGH_RISK_DISPATCH: "Critical",
       HIGH_RISK_ZONE: "Critical",
       ED_OVERLOAD_RISK: "High",
       ACCIDENT_HOTSPOT: "High",

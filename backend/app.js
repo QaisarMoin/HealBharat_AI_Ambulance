@@ -79,6 +79,14 @@ app.use("/api/predictions", require("./routes/predictionRoutes"));
 app.use("/api/alerts", require("./routes/alertRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/data", require("./routes/dataRoutes"));
+app.use("/api/hospitals", require("./routes/hospitalRoutes"));
+app.use("/api/ambulances", require("./routes/ambulanceRoutes"));
+app.use("/api/incidents", require("./routes/incidentRoutes"));
+
+// Test route
+app.post("/api/test", (req, res) => {
+  res.json({ success: true, message: "Test POST route working" });
+});
 
 // Health check endpoint
 app.get("/health", (req, res) => {

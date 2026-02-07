@@ -76,8 +76,8 @@ class DataImportService {
         try {
           // Check if log already exists (basic duplicate check)
           const existing = await AmbulanceLog.findOne({
-            hospitalId: logData.hospitalId,
-            arrivalTime: logData.arrivalTime,
+            hospital: logData.hospital,
+            timestamp: logData.timestamp,
             patientCount: logData.patientCount,
           });
 
@@ -548,7 +548,7 @@ class DataImportService {
   }
 
   static validateAmbulanceLogData(data) {
-    const required = ["hospitalId", "zone", "patientCount", "arrivalTime"];
+    const required = ["hospital", "zone", "patientCount", "timestamp"];
     const errors = [];
 
     for (const field of required) {
@@ -575,9 +575,6 @@ class DataImportService {
       "zone",
       "severity",
       "type",
-      "latitude",
-      "longitude",
-      "victimCount",
       "timestamp",
     ];
     const errors = [];
@@ -590,14 +587,6 @@ class DataImportService {
 
     if (data.victimCount && data.victimCount < 1) {
       errors.push("Victim count must be at least 1");
-    }
-
-    if (data.latitude && (data.latitude < -90 || data.latitude > 90)) {
-      errors.push("Latitude must be between -90 and 90");
-    }
-
-    if (data.longitude && (data.longitude < -180 || data.longitude > 180)) {
-      errors.push("Longitude must be between -180 and 180");
     }
 
     return {

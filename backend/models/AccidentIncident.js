@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const accidentIncidentSchema = new mongoose.Schema(
   {
+    type: {
+      type: String,
+      required: [true, "Incident type is required"],
+      trim: true,
+    },
     zone: {
       type: String,
       required: [true, "Zone is required"],
@@ -28,6 +33,21 @@ const accidentIncidentSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: [500, "Description cannot exceed 500 characters"],
+    },
+    riskLevel: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
+      default: "Medium"
+    },
+    ambulanceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ambulance",
+      required: false
+    },
+    hospital: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hospital",
+      required: false
     },
   },
   {

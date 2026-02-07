@@ -3,6 +3,7 @@ const logger = require("../utils/logger");
 // Import models
 const Hospital = require("../models/Hospital");
 const AmbulanceLog = require("../models/AmbulanceLog");
+const Ambulance = require("../models/Ambulance");
 const AccidentIncident = require("../models/AccidentIncident");
 const WeatherContext = require("../models/WeatherContext");
 const TimeContext = require("../models/TimeContext");
@@ -30,32 +31,75 @@ class DashboardService {
 
       // Get predictions
       const predictions = await PredictionService.getRiskPredictions();
-      const highRiskZones = predictions.filter(
-        (p) => p.overallRisk === "High",
-      ).length;
-      const mediumRiskZones = predictions.filter(
-        (p) => p.overallRisk === "Medium",
-      ).length;
-
+      
       // Get alerts
       const alerts = await AlertService.getCurrentAlerts();
-      const activeAlerts = alerts.filter((a) => a.status === "active").length;
-      const criticalAlerts = alerts.filter(
-        (a) => a.severity === "Critical",
-      ).length;
+      
+      // Calculate Overall Pressure Level
+      const highRiskZones = predictions.filter(p => p.overallRisk === "High").length;
+      const criticalAlerts = alerts.filter(a => a.severity === "Critical").length;
+      
+      let overallPressureLevel = "NORMAL";
+      if (hospitalCount === 0) overallPressureLevel = "NO DATA";
+      else if (highRiskZones > 1 || criticalAlerts > 0) overallPressureLevel = "CRITICAL";
+      else if (highRiskZones > 0 || alerts.length > 5) overallPressureLevel = "WARNING";
+
+      // Get detailed data for lists
+      const hospitals = await Hospital.find();
+      
+      // Calculate available ambulances (real data)
+      const availableAmbulances = await Ambulance.countDocuments({ status: "Available" });
+      const totalAmbulances = await Ambulance.countDocuments();
+      
+      // Prepare Pressure Trends (Top 5 busiest hospitals)
+      const pressureTrends = hospitals
+        .map(h => ({
+          level: this.getHospitalStatus(h).toUpperCase(),
+          hospitalName: h.name,
+          location: h.zone,
+          percentage: Math.round((h.currentLoad / h.capacity) * 100)
+        }))
+        .sort((a, b) => b.percentage - a.percentage)
+        .slice(0, 5);
+
+      // Prepare Ambulance Status (real data aggregation)
+      const ambulanceStatus = await Ambulance.aggregate([
+        {
+          $group: {
+            _id: "$zone",
+            available: { 
+              $sum: { $cond: [{ $eq: ["$status", "Available"] }, 1, 0] } 
+            },
+            total: { $sum: 1 }
+          }
+        },
+        { $limit: 5 }
+      ]);
+      
+      const formattedAmbulanceStatus = ambulanceStatus.map(stat => ({
+        hospitalName: stat._id + " Zone", // Grouped by zone
+        location: stat._id,
+        available: stat.available
+      }));
+
+      // Prepare Recent Alerts
+      const recentAlerts = alerts.slice(0, 5).map(a => ({
+        severity: a.severity.toUpperCase(),
+        message: a.message,
+        hospitalName: a.zone + " Zone", // Alerts are zone based mostly
+        timestamp: new Date(a.timestamp).toLocaleTimeString()
+      }));
 
       return {
-        summary: {
-          totalHospitals: hospitalCount,
-          recentAmbulanceLogs: ambulanceLogCount,
-          recentAccidents: accidentCount,
-          highRiskZones: highRiskZones,
-          mediumRiskZones: mediumRiskZones,
-          activeAlerts: activeAlerts,
-          criticalAlerts: criticalAlerts,
-        },
-        lastUpdated: now,
-        status: this.getSystemStatus(predictions, alerts),
+        overallPressureLevel,
+        availableAmbulances: availableAmbulances,
+        totalAmbulances: totalAmbulances,
+        activeIncidents: accidentCount,
+        hospitalsMonitored: hospitalCount,
+        pressureTrends,
+        ambulanceStatus: formattedAmbulanceStatus,
+        recentAlerts,
+        lastUpdated: now
       };
     } catch (error) {
       logger.error("Error getting dashboard summary:", error);
@@ -508,6 +552,27 @@ class DashboardService {
 
   static async getHospitalMapData() {
     const hospitals = await Hospital.find();
+    // Get available ambulances count for each hospital
+    const ambulanceCounts = await Ambulance.aggregate([
+      { $match: { status: "Available" } },
+      { $group: { _id: "$assignedHospital", count: { $sum: 1 } } }
+    ]);
+    
+    const countMap = {};
+    ambulanceCounts.forEach(item => {
+      if (item._id) countMap[item._id.toString()] = item.count;
+    });
+
+    const activeIncidents = await AccidentIncident.aggregate([
+       { $match: { timestamp: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }, // Last 24h
+       { $group: { _id: "$zone", count: { $sum: 1 } } }
+    ]);
+    
+    const incidentMap = {};
+    activeIncidents.forEach(item => {
+        incidentMap[item._id] = item.count;
+    });
+
     return hospitals.map((h) => ({
       id: h._id,
       name: h.name,
@@ -517,6 +582,8 @@ class DashboardService {
       currentPatients: h.currentPatients,
       type: h.type,
       status: this.getHospitalStatus(h),
+      availableAmbulances: countMap[h._id.toString()] || 0,
+      activeIncidents: incidentMap[h.zone] || 0 // Approximate by zone
     }));
   }
 

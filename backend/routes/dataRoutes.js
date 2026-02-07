@@ -37,6 +37,61 @@ router.post("/hospitals", validateDataImport, async (req, res) => {
 });
 
 /**
+ * GET /api/data/hospitals-list
+ * Get list of hospitals (id and name) for dropdowns
+ */
+router.get("/hospitals-list", async (req, res) => {
+  try {
+    const hospitals = await require("../models/Hospital").find(
+      {},
+      "name _id zone",
+    );
+    res.json({
+      success: true,
+      data: hospitals,
+    });
+  } catch (error) {
+    console.error("Error fetching hospital list:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch hospital list",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Test POST route
+ */
+router.post("/test", async (req, res) => {
+  try {
+    const { hospitals } = req.body;
+
+    if (!Array.isArray(hospitals)) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospitals data must be an array",
+      });
+    }
+
+    const result = await DataImportService.importHospitals(hospitals);
+
+    res.json({
+      success: true,
+      data: result,
+      message: `${result.imported} hospitals imported successfully`,
+    });
+  } catch (error) {
+    console.error("Error importing hospitals:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to import hospitals",
+      error: error.message,
+    });
+  }
+});
+
+/**
  * POST /api/data/import/ambulance-logs
  * Import ambulance log data
  */

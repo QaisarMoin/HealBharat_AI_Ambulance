@@ -30,12 +30,12 @@ const Alerts = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/alerts");
+      const response = await fetch("/api/alerts");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setAlerts(data.alerts || []);
+      setAlerts(data.data || []);
     } catch (err) {
       console.error("Error fetching alerts:", err);
       setError(err.message || "Failed to fetch alerts");
